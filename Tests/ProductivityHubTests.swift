@@ -4,12 +4,19 @@
 // Every test is isolated, deterministic, and fast.
 
 import XCTest
+#if compiler(>=5.9)
 import SwiftData
+#endif
+#if compiler(>=5.9)
 @testable import ProductivityHub
+#else
+@testable import ProductivityHub_Current
+#endif
 
 // MARK: - Test Infrastructure
 
 /// In-memory model container for isolated tests
+#if compiler(>=5.9)
 @MainActor
 func makeTestModelContext() throws -> ModelContext {
     let schema = Schema([TaskItem.self, NoteItem.self, CalendarEvent.self, Tag.self])
@@ -17,6 +24,13 @@ func makeTestModelContext() throws -> ModelContext {
     let container = try ModelContainer(for: schema, configurations: [config])
     return container.mainContext
 }
+#else
+@MainActor
+func makeTestModelContext() throws -> ModelContext {
+    ModelContext.clearSharedStorage()
+    return ModelContext()
+}
+#endif
 
 // MARK: - Mock Services
 

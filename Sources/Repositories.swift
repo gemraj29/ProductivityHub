@@ -33,13 +33,20 @@ final class TaskRepository: TaskRepositoryProtocol {
         let predicate = #Predicate<TaskItem> { !$0.isCompleted }
         var descriptor = FetchDescriptor(predicate: predicate)
         #else
+        let all = try fetchAll()
+        let filtered = all.filter { !$0.isCompleted }
         var descriptor = FetchDescriptor<TaskItem>()
+        // We'll return filtered manually at the end
         #endif
         descriptor.sortBy = [
             SortDescriptor(\.priorityRaw, order: .reverse),
             SortDescriptor(\.dueDate, order: .forward)
         ]
+        #if compiler(>=5.9)
         return try modelContext.fetch(descriptor)
+        #else
+        return filtered
+        #endif
     }
 
     func fetchCompleted() throws -> [TaskItem] {
@@ -47,10 +54,16 @@ final class TaskRepository: TaskRepositoryProtocol {
         let predicate = #Predicate<TaskItem> { $0.isCompleted }
         var descriptor = FetchDescriptor(predicate: predicate)
         #else
+        let all = try fetchAll()
+        let filtered = all.filter { $0.isCompleted }
         var descriptor = FetchDescriptor<TaskItem>()
         #endif
         descriptor.sortBy = [SortDescriptor(\.completedDate, order: .reverse)]
+        #if compiler(>=5.9)
         return try modelContext.fetch(descriptor)
+        #else
+        return filtered
+        #endif
     }
 
     func fetchOverdue() throws -> [TaskItem] {
@@ -61,10 +74,16 @@ final class TaskRepository: TaskRepositoryProtocol {
         }
         var descriptor = FetchDescriptor(predicate: predicate)
         #else
+        let all = try fetchAll()
+        let filtered = all.filter { !$0.isCompleted && $0.dueDate != nil && $0.dueDate! < now }
         var descriptor = FetchDescriptor<TaskItem>()
         #endif
         descriptor.sortBy = [SortDescriptor(\.dueDate, order: .forward)]
+        #if compiler(>=5.9)
         return try modelContext.fetch(descriptor)
+        #else
+        return filtered
+        #endif
     }
 
     func fetchByTag(_ tag: Tag) throws -> [TaskItem] {
@@ -75,7 +94,8 @@ final class TaskRepository: TaskRepositoryProtocol {
         }
         return try modelContext.fetch(FetchDescriptor(predicate: predicate))
         #else
-        return []
+        let all = try fetchAll()
+        return all.filter { task in task.tags.contains(where: { $0.id == tagID }) }
         #endif
     }
 
@@ -123,10 +143,16 @@ final class NoteRepository: NoteRepositoryProtocol {
         let predicate = #Predicate<NoteItem> { $0.isPinned }
         var descriptor = FetchDescriptor(predicate: predicate)
         #else
+        let all = try fetchAll()
+        let filtered = all.filter { $0.isPinned }
         var descriptor = FetchDescriptor<NoteItem>()
         #endif
         descriptor.sortBy = [SortDescriptor(\.dateModified, order: .reverse)]
+        #if compiler(>=5.9)
         return try modelContext.fetch(descriptor)
+        #else
+        return filtered
+        #endif
     }
 
     func search(query: String) throws -> [NoteItem] {
@@ -138,7 +164,8 @@ final class NoteRepository: NoteRepositoryProtocol {
         }
         return try modelContext.fetch(FetchDescriptor(predicate: predicate))
         #else
-        return []
+        let all = try fetchAll()
+        return all.filter { $0.title.lowercased().contains(lowered) || $0.content.lowercased().contains(lowered) }
         #endif
     }
 
@@ -150,7 +177,8 @@ final class NoteRepository: NoteRepositoryProtocol {
         }
         return try modelContext.fetch(FetchDescriptor(predicate: predicate))
         #else
-        return []
+        let all = try fetchAll()
+        return all.filter { note in note.tags.contains(where: { $0.id == tagID }) }
         #endif
     }
 
@@ -197,10 +225,16 @@ final class CalendarEventRepository: CalendarEventRepositoryProtocol {
         }
         var descriptor = FetchDescriptor(predicate: predicate)
         #else
+        let all = try fetchAll()
+        let filtered = all.filter { $0.startDate >= startDate && $0.startDate <= endDate }
         var descriptor = FetchDescriptor<CalendarEvent>()
         #endif
         descriptor.sortBy = [SortDescriptor(\.startDate, order: .forward)]
+        #if compiler(>=5.9)
         return try modelContext.fetch(descriptor)
+        #else
+        return filtered
+        #endif
     }
 
     func fetchEventsForDay(_ date: Date) throws -> [CalendarEvent] {

@@ -34,3 +34,15 @@ targets:
       - Tests
     dependencies:
       - target: ProductivityHub
+    settings:
+      GENERATE_INFOPLIST_FILE: "YES"
+  ProductivityHubTests_Current:
+    type: bundle.unit-test
+    platform: iOS
+    deploymentTarget: "16.4"
+    sources:
+      - Tests
+    dependencies:
+      - target: ProductivityHub_Current
+    settings:
+      GENERATE_INFOPLIST_FILE: "YES"

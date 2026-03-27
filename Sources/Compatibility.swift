@@ -31,10 +31,25 @@ class ModelContainer {
 }
 
 class ModelContext {
-    func fetch<T>(_ descriptor: FetchDescriptor<T>) throws -> [T] { [] }
-    func insert<T>(_ model: T) {}
-    func delete<T>(_ model: T) {}
+    private static var storage: [Any] = []
+
+    func fetch<T>(_ descriptor: FetchDescriptor<T>) throws -> [T] {
+        return Self.storage.compactMap { $0 as? T }
+    }
+
+    func insert<T>(_ model: T) {
+        Self.storage.append(model)
+    }
+
+    func delete<T>(_ model: T) {
+        Self.storage.removeAll { ($0 as? AnyObject) === (model as? AnyObject) }
+    }
+
     func save() throws {}
+
+    static func clearSharedStorage() {
+        storage = []
+    }
 }
 
 struct FetchDescriptor<T> {
