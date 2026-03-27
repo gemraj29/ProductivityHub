@@ -1,0 +1,17 @@
+# Xcode
+#
+build/
+DerivedData/
+*.xcodeproj
+*.xcworkspace
+*.xcscheme
+*.plist
+!Sources/Info.plist
+
+# General
+.DS_Store
+*.png
+*.zip
+
+# User settings
+xcuserdata/
