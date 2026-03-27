@@ -16,6 +16,12 @@ A modern, high-performance iOS productivity application built with **SwiftUI** a
 - **🎨 Modern UI**: Vibrant design with glassmorphism and smooth animations.
 - **💾 Offline First**: Persistent storage using SwiftData (with backward compatibility).
 
+## 📸 Screenshots
+
+| Task List | Calendar View | Event Detail |
+| :---: | :---: | :---: |
+| ![Tasks](./assets/preview.png) | ![Calendar](./assets/state.png) | ![Detail](./assets/simulator_screenshot_v2.png) |
+
 ## 🛠 Tech Stack
 
 - **UI**: SwiftUI (iOS 16+)
