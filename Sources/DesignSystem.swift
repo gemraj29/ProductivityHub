@@ -1,5 +1,5 @@
 // DesignSystem.swift
-// Principal Engineer: Aisha Patel — UI/UX Engineering Lead
+// Principal Engineer: Rajesh Vallepalli — UI/UX Engineering Lead
 // Design tokens, reusable components, and theming.
 // Every color, spacing, and typography value flows from here.
 

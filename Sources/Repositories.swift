@@ -1,5 +1,5 @@
 // Repositories.swift
-// Principal Engineer: Kenji Tanaka — Data & Persistence Lead
+// Principal Engineer: Rajesh Vallepalli — Data & Persistence Lead
 // Concrete SwiftData-backed repository implementations.
 // All queries use SwiftData #Predicate for type safety.
 

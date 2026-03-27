@@ -1,5 +1,5 @@
 // CoreTypes.swift
-// Principal Engineer: Sofia Chen — Chief Architect
+// Principal Engineer: Rajesh Vallepalli — Chief Architect
 // Shared types used across all modules.
 
 import Foundation

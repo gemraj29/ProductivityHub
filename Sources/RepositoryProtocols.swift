@@ -1,5 +1,5 @@
 // RepositoryProtocols.swift
-// Principal Engineer: Kenji Tanaka — Data & Persistence Lead
+// Principal Engineer: Rajesh Vallepalli — Data & Persistence Lead
 // Repository contracts — the domain layer depends only on these.
 // Concrete implementations live in the Data layer.
 

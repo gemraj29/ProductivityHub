@@ -1,5 +1,5 @@
 // NoteFeature.swift
-// Principal Engineers: Aisha Patel (Views) + Marcus Rivera (ViewModel concurrency)
+// Principal Engineer: Rajesh Vallepalli
 // Notes list with search, pinning, and a rich editor.
 
 import SwiftUI

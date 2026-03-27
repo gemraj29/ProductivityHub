@@ -1,5 +1,5 @@
 // ProductivityHubApp.swift
-// Principal Engineer: Sofia Chen — Chief Architect
+// Principal Engineer: Rajesh Vallepalli — Chief Architect
 // Architecture: MVVM + Coordinator with Clean Architecture layers
 // Target: iOS 17+ | SwiftUI | SwiftData
 //

@@ -1,5 +1,5 @@
 // Services.swift
-// Principal Engineer: Marcus Rivera — Platform & Performance Lead
+// Principal Engineer: Rajesh Vallepalli — Platform & Performance Lead
 // Notification scheduling, search highlighting, and caching infrastructure.
 // All services are protocol-conformant and Sendable.
 

@@ -1,5 +1,5 @@
 // Models.swift
-// Principal Engineer: Kenji Tanaka — Data & Persistence Lead
+// Principal Engineer: Rajesh Vallepalli — Data & Persistence Lead
 // SwiftData models for Tasks, Notes, Calendar Events, and Tags.
 // All models are value-semantic where possible, @Model for persistence.
 

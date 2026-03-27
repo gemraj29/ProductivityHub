@@ -1,5 +1,5 @@
 // CalendarFeature.swift
-// Principal Engineers: Aisha Patel (Views) + Elena Volkov (data coordination)
+// Principal Engineer: Rajesh Vallepalli
 // Calendar hub with month view, day detail, and event creation.
 
 import SwiftUI

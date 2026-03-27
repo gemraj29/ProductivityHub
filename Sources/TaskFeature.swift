@@ -1,5 +1,5 @@
 // TaskFeature.swift
-// Principal Engineers: Aisha Patel (Views) + Marcus Rivera (ViewModel concurrency)
+// Principal Engineer: Rajesh Vallepalli
 // Task list, detail, and creation flow.
 
 import SwiftUI

@@ -1,5 +1,5 @@
 // DependencyContainer.swift
-// Principal Engineer: Sofia Chen — Chief Architect
+// Principal Engineer: Rajesh Vallepalli — Chief Architect
 // Centralized DI container — all dependencies flow from here.
 // Every concrete type is hidden behind a protocol.
 
