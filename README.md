@@ -22,6 +22,11 @@ A modern, high-performance iOS productivity application built with **SwiftUI** a
 | :---: | :---: | :---: |
 | ![Tasks](./assets/preview.png) | ![Calendar](./assets/state.png) | ![Detail](./assets/simulator_screenshot_v2.png) |
 
+> [!NOTE]
+> **Verified Functionality**: All 42 unit tests pass on the iOS 16.4 target. The app features session-based persistence on older SDKs and full native SwiftData persistence on iOS 17+.
+
+![Verified Run](./assets/final_verification.png)
+
 ## 🛠 Tech Stack
 
 - **UI**: SwiftUI (iOS 16+)
