@@ -1,0 +1,32 @@
+name: iOS CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    name: Run Tests
+    runs-on: macos-13
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate Project
+        run: xcodegen generate
+
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode_14.3.1.app/Contents/Developer
+
+      - name: Run Tests
+        run: |
+          xcodebuild -scheme ProductivityHub_Current \
+                     -sdk iphonesimulator \
+                     -destination "platform=iOS Simulator,name=iPhone 14" \
+                     test

@@ -1,12 +1,16 @@
+<p align="center">
+  <img src="./assets/app_icon.png" width="128" height="128" />
+</p>
+
 # ProductivityHub
 
-A modern, high-performance iOS productivity application built with **SwiftUI** and **SwiftData**. Designed with Clean Architecture and MVVM-Coordinator patterns.
-
-![App Preview](./assets/preview.png)
-
+[![iOS CI](https://github.com/gemraj29/ProductivityHub/actions/workflows/swift.yml/badge.svg)](https://github.com/gemraj29/ProductivityHub/actions/workflows/swift.yml)
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Platform](https://img.shields.io/badge/platform-iOS-lightgrey.svg)
 ![Swift](https://img.shields.io/badge/swift-5.8%2B-orange.svg)
+
+A modern, high-performance iOS productivity application built with **SwiftUI** and **SwiftData**. Designed with Clean Architecture and MVVM-Coordinator patterns.
+
 
 ## 🚀 Features
 
@@ -18,9 +22,12 @@ A modern, high-performance iOS productivity application built with **SwiftUI** a
 
 ## 📸 Screenshots
 
-| Task List | Calendar View | Event Detail |
+| List View | Calendar | Notes |
 | :---: | :---: | :---: |
-| ![Tasks](./assets/preview.png) | ![Calendar](./assets/state.png) | ![Detail](./assets/simulator_screenshot_v2.png) |
+| ![Tasks](./assets/preview.png) | ![Calendar View](./assets/calendar_view.png) | ![Notes View](./assets/notes_view.png) |
+| **Event Details** | **State Overview** | **Final Verification** |
+| ![Detail](./assets/simulator_screenshot_v2.png) | ![State](./assets/state.png) | ![Final](./assets/final_verification.png) |
+
 
 > [!NOTE]
 > **Verified Functionality**: All 42 unit tests pass on the iOS 16.4 target. The app features session-based persistence on older SDKs and full native SwiftData persistence on iOS 17+.
