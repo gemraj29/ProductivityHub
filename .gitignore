@@ -10,8 +10,8 @@ DerivedData/
 
 # General
 .DS_Store
-*.png
 *.zip
+!assets/*.png
 
 # User settings
 xcuserdata/

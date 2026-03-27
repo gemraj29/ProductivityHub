@@ -2,6 +2,8 @@
 
 A modern, high-performance iOS productivity application built with **SwiftUI** and **SwiftData**. Designed with Clean Architecture and MVVM-Coordinator patterns.
 
+![App Preview](./assets/preview.png)
+
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Platform](https://img.shields.io/badge/platform-iOS-lightgrey.svg)
 ![Swift](https://img.shields.io/badge/swift-5.8%2B-orange.svg)
