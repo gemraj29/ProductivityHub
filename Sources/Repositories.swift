@@ -129,11 +129,12 @@ final class NoteRepository: NoteRepositoryProtocol {
     }
 
     func fetchAll() throws -> [NoteItem] {
+        // Sort only by dateModified here. Pinned/unpinned separation is handled
+        // by NoteListViewModel's computed properties, avoiding a SortDescriptor
+        // on a Bool-backed @Model property which triggers an NSObject overload
+        // resolution failure in Swift 5.10+.
         let descriptor = FetchDescriptor<NoteItem>(
-            sortBy: [
-                SortDescriptor(\.isPinned, order: .reverse),
-                SortDescriptor(\.dateModified, order: .reverse)
-            ]
+            sortBy: [SortDescriptor(\.dateModified, order: .reverse)]
         )
         return try modelContext.fetch(descriptor)
     }
