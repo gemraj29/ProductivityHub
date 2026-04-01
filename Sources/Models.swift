@@ -1,7 +1,6 @@
 // Models.swift
 // Principal Engineer: Rajesh Vallepalli — Data & Persistence Lead
 // SwiftData models for Tasks, Notes, Calendar Events, and Tags.
-// All models are value-semantic where possible, @Model for persistence.
 
 import Foundation
 #if compiler(>=5.9)
@@ -15,25 +14,39 @@ import SwiftData
 #endif
 final class TaskItem {
     #if compiler(>=5.9)
-    @Attribute(.unique) 
+    @Attribute(.unique)
     #endif
     var id: TaskID
     var title: String
     var taskDescription: String
     var isCompleted: Bool
     var priorityRaw: Int
+    var workspaceRaw: String
+    var categoryRaw: String
     var dueDate: Date?
     var completedDate: Date?
     var dateCreated: Date
     var dateModified: Date
     #if compiler(>=5.9)
-    @Relationship(deleteRule: .nullify, inverse: \Tag.tasks) 
+    @Relationship(deleteRule: .nullify, inverse: \Tag.tasks)
     #endif
     var tags: [Tag]
+
+    // MARK: Computed — type-safe accessors
 
     var priority: Priority {
         get { Priority(rawValue: priorityRaw) ?? .medium }
         set { priorityRaw = newValue.rawValue }
+    }
+
+    var workspace: TaskWorkspace {
+        get { TaskWorkspace(rawValue: workspaceRaw) ?? .inbox }
+        set { workspaceRaw = newValue.rawValue }
+    }
+
+    var category: TaskCategory {
+        get { TaskCategory(rawValue: categoryRaw) ?? .general }
+        set { categoryRaw = newValue.rawValue }
     }
 
     init(
@@ -42,31 +55,35 @@ final class TaskItem {
         description: String = "",
         isCompleted: Bool = false,
         priority: Priority = .medium,
+        workspace: TaskWorkspace = .inbox,
+        category: TaskCategory = .general,
         dueDate: Date? = nil,
         tags: [Tag] = []
     ) {
-        self.id = id
-        self.title = title
+        self.id              = id
+        self.title           = title
         self.taskDescription = description
-        self.isCompleted = isCompleted
-        self.priorityRaw = priority.rawValue
-        self.dueDate = dueDate
-        self.completedDate = nil
-        self.dateCreated = .now
-        self.dateModified = .now
-        self.tags = tags
+        self.isCompleted     = isCompleted
+        self.priorityRaw     = priority.rawValue
+        self.workspaceRaw    = workspace.rawValue
+        self.categoryRaw     = category.rawValue
+        self.dueDate         = dueDate
+        self.completedDate   = nil
+        self.dateCreated     = .now
+        self.dateModified    = .now
+        self.tags            = tags
     }
 
     func markCompleted() {
-        isCompleted = true
-        completedDate = .now
-        dateModified = .now
+        isCompleted    = true
+        completedDate  = .now
+        dateModified   = .now
     }
 
     func markIncomplete() {
-        isCompleted = false
+        isCompleted   = false
         completedDate = nil
-        dateModified = .now
+        dateModified  = .now
     }
 }
 
@@ -77,7 +94,7 @@ final class TaskItem {
 #endif
 final class NoteItem {
     #if compiler(>=5.9)
-    @Attribute(.unique) 
+    @Attribute(.unique)
     #endif
     var id: NoteID
     var title: String
@@ -86,7 +103,7 @@ final class NoteItem {
     var dateCreated: Date
     var dateModified: Date
     #if compiler(>=5.9)
-    @Relationship(deleteRule: .nullify, inverse: \Tag.notes) 
+    @Relationship(deleteRule: .nullify, inverse: \Tag.notes)
     #endif
     var tags: [Tag]
 
@@ -106,13 +123,13 @@ final class NoteItem {
         isPinned: Bool = false,
         tags: [Tag] = []
     ) {
-        self.id = id
-        self.title = title
-        self.content = content
-        self.isPinned = isPinned
+        self.id          = id
+        self.title       = title
+        self.content     = content
+        self.isPinned    = isPinned
         self.dateCreated = .now
         self.dateModified = .now
-        self.tags = tags
+        self.tags        = tags
     }
 
     func touch() {
@@ -127,7 +144,7 @@ final class NoteItem {
 #endif
 final class CalendarEvent {
     #if compiler(>=5.9)
-    @Attribute(.unique) 
+    @Attribute(.unique)
     #endif
     var id: EventID
     var title: String
@@ -138,7 +155,7 @@ final class CalendarEvent {
     var colorHex: String
     var dateCreated: Date
     #if compiler(>=5.9)
-    @Relationship(deleteRule: .nullify, inverse: \Tag.events) 
+    @Relationship(deleteRule: .nullify, inverse: \Tag.events)
     #endif
     var tags: [Tag]
 
@@ -157,29 +174,29 @@ final class CalendarEvent {
         startDate: Date,
         endDate: Date,
         isAllDay: Bool = false,
-        colorHex: String = "#5E5CE6",
+        colorHex: String = "#2865E0",
         tags: [Tag] = []
     ) {
-        self.id = id
-        self.title = title
+        self.id               = id
+        self.title            = title
         self.eventDescription = description
-        self.startDate = startDate
-        self.endDate = endDate
-        self.isAllDay = isAllDay
-        self.colorHex = colorHex
-        self.dateCreated = .now
-        self.tags = tags
+        self.startDate        = startDate
+        self.endDate          = endDate
+        self.isAllDay         = isAllDay
+        self.colorHex         = colorHex
+        self.dateCreated      = .now
+        self.tags             = tags
     }
 }
 
-// MARK: - Tag (Shared Across Features)
+// MARK: - Tag
 
 #if compiler(>=5.9)
 @Model
 #endif
 final class Tag {
     #if compiler(>=5.9)
-    @Attribute(.unique) 
+    @Attribute(.unique)
     #endif
     var id: TagID
     var name: String
@@ -191,13 +208,13 @@ final class Tag {
     init(
         id: TagID = UUID(),
         name: String,
-        colorHex: String = "#8E8E93"
+        colorHex: String = "#2865E0"
     ) {
-        self.id = id
-        self.name = name
+        self.id       = id
+        self.name     = name
         self.colorHex = colorHex
-        self.tasks = []
-        self.notes = []
-        self.events = []
+        self.tasks    = []
+        self.notes    = []
+        self.events   = []
     }
 }

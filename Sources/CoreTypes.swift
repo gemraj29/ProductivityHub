@@ -50,17 +50,17 @@ enum AppError: LocalizedError, Sendable {
 
 // MARK: - Typealiases for Semantic Clarity
 
-typealias TaskID = UUID
-typealias NoteID = UUID
+typealias TaskID  = UUID
+typealias NoteID  = UUID
 typealias EventID = UUID
-typealias TagID = UUID
+typealias TagID   = UUID
 
 // MARK: - Priority Levels
 
 enum Priority: Int, Codable, CaseIterable, Comparable, Sendable {
-    case low = 0
+    case low    = 0
     case medium = 1
-    case high = 2
+    case high   = 2
     case urgent = 3
 
     var label: String {
@@ -86,33 +86,57 @@ enum Priority: Int, Codable, CaseIterable, Comparable, Sendable {
     }
 }
 
+// MARK: - Task Workspace
+
+enum TaskWorkspace: String, CaseIterable, Codable, Sendable {
+    case inbox    = "Inbox"
+    case work     = "Work"
+    case personal = "Personal"
+
+    var icon: String {
+        switch self {
+        case .inbox:    return "tray"
+        case .work:     return "briefcase"
+        case .personal: return "person.crop.circle"
+        }
+    }
+}
+
+// MARK: - Task Category
+
+enum TaskCategory: String, CaseIterable, Codable, Sendable {
+    case general  = "General"
+    case deepWork = "Deep Work"
+    case meetings = "Meetings"
+    case admin    = "Admin"
+}
+
 // MARK: - Sort Options
 
 enum TaskSortOption: String, CaseIterable, Sendable {
-    case dueDate = "Due Date"
-    case priority = "Priority"
-    case title = "Title"
+    case dueDate     = "Due Date"
+    case priority    = "Priority"
+    case title       = "Title"
     case dateCreated = "Date Created"
 }
 
 enum NoteSortOption: String, CaseIterable, Sendable {
     case lastModified = "Last Modified"
-    case title = "Title"
-    case dateCreated = "Date Created"
+    case title        = "Title"
+    case dateCreated  = "Date Created"
 }
 
 // MARK: - Date Helpers
 
 extension Date {
-    var isToday: Bool { Calendar.current.isDateInToday(self) }
+    var isToday: Bool    { Calendar.current.isDateInToday(self) }
     var isTomorrow: Bool { Calendar.current.isDateInTomorrow(self) }
-    var isOverdue: Bool { self < Date.now && !isToday }
+    var isOverdue: Bool  { self < Date.now && !isToday }
 
     var relativeDisplay: String {
-        if isToday { return "Today" }
+        if isToday    { return "Today" }
         if isTomorrow { return "Tomorrow" }
-        if isOverdue { return "Overdue" }
-
+        if isOverdue  { return "Overdue" }
         let formatter = RelativeDateTimeFormatter()
         formatter.unitsStyle = .short
         return formatter.localizedString(for: self, relativeTo: .now)
@@ -130,5 +154,11 @@ extension Date {
         formatter.dateStyle = .none
         formatter.timeStyle = .short
         return formatter.string(from: self)
+    }
+
+    var dayAbbreviation: String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "EEE"
+        return formatter.string(from: self).uppercased()
     }
 }
