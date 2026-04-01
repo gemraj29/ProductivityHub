@@ -2,16 +2,6 @@
 // Principal Engineer: Rajesh Vallepalli — Chief Architect
 // Architecture: MVVM + Coordinator with Clean Architecture layers
 // Target: iOS 17+ | SwiftUI | SwiftData
-//
-// Module Structure:
-//   App/          → Entry point, DI container, root coordinator
-//   Core/         → Shared types, extensions, design tokens
-//   Domain/       → Models, repository protocols, use cases
-//   Data/         → SwiftData persistence, concrete repositories
-//   Networking/   → API client, endpoints, DTOs
-//   Features/     → Tasks, Notes, Calendar — each with View + ViewModel
-//   DesignSystem/ → Reusable UI components, theme, animations
-//   Tests/        → Unit + integration tests
 
 import SwiftUI
 #if compiler(>=5.9)
@@ -37,36 +27,46 @@ struct ProductivityHubApp: App {
 }
 
 // MARK: - Root Coordinator
+//
+// ViewModels are stored as @StateObject so SwiftUI owns them for the lifetime
+// of this view. Previously they were created inside `body` (a computed property),
+// which recreated a fresh ViewModel — and replaced the child's @ObservedObject —
+// on every parent re-render (e.g. tab switch). That caused all in-memory state
+// to reset and made task/note creation appear to fail.
 
 struct RootCoordinatorView: View {
     let container: DependencyContainer
     @State private var selectedTab: AppTab = .tasks
+    @StateObject private var taskViewModel: TaskListViewModel
+    @StateObject private var noteViewModel: NoteListViewModel
+    @StateObject private var calendarViewModel: CalendarHubViewModel
+
+    init(container: DependencyContainer) {
+        self.container = container
+        _taskViewModel   = StateObject(wrappedValue: container.makeTaskListViewModel())
+        _noteViewModel   = StateObject(wrappedValue: container.makeNoteListViewModel())
+        _calendarViewModel = StateObject(wrappedValue: container.makeCalendarViewModel())
+    }
 
     var body: some View {
         TabView(selection: $selectedTab) {
-            TaskListView(
-                viewModel: container.makeTaskListViewModel()
-            )
-            .tabItem {
-                Label(AppTab.tasks.title, systemImage: AppTab.tasks.icon)
-            }
-            .tag(AppTab.tasks)
+            TaskListView(viewModel: taskViewModel)
+                .tabItem {
+                    Label(AppTab.tasks.title, systemImage: AppTab.tasks.icon)
+                }
+                .tag(AppTab.tasks)
 
-            NoteListView(
-                viewModel: container.makeNoteListViewModel()
-            )
-            .tabItem {
-                Label(AppTab.notes.title, systemImage: AppTab.notes.icon)
-            }
-            .tag(AppTab.notes)
+            NoteListView(viewModel: noteViewModel)
+                .tabItem {
+                    Label(AppTab.notes.title, systemImage: AppTab.notes.icon)
+                }
+                .tag(AppTab.notes)
 
-            CalendarHubView(
-                viewModel: container.makeCalendarViewModel()
-            )
-            .tabItem {
-                Label(AppTab.calendar.title, systemImage: AppTab.calendar.icon)
-            }
-            .tag(AppTab.calendar)
+            CalendarHubView(viewModel: calendarViewModel)
+                .tabItem {
+                    Label(AppTab.calendar.title, systemImage: AppTab.calendar.icon)
+                }
+                .tag(AppTab.calendar)
         }
         .tint(DesignTokens.Colors.accent)
     }

@@ -28,7 +28,6 @@ final class TaskListViewModel: ObservableObject {
     }
 
     deinit {
-        // Debug: verify no retain cycles
         #if DEBUG
         print("TaskListViewModel deinitialized")
         #endif
@@ -157,6 +156,7 @@ final class TaskDetailViewModel: ObservableObject {
             existing.priority = priority
             existing.dueDate = hasDueDate ? dueDate : nil
             existing.dateModified = .now
+            try taskRepository.save()
         } else {
             let newTask = TaskItem(
                 title: title.trimmingCharacters(in: .whitespacesAndNewlines),
@@ -165,10 +165,7 @@ final class TaskDetailViewModel: ObservableObject {
                 dueDate: hasDueDate ? dueDate : nil
             )
             try taskRepository.insert(newTask)
-            return
         }
-
-        try taskRepository.save()
     }
 }
 
@@ -184,7 +181,7 @@ struct TaskListView: View {
             Group {
                 switch viewModel.state {
                 case .idle, .loading:
-                    ProgressView("Loading tasks...")
+                    ProgressView("Loading tasks…")
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
 
                 case .loaded:
@@ -228,7 +225,7 @@ struct TaskListView: View {
 
     @ViewBuilder
     private var taskListContent: some View {
-        if viewModel.filteredTasks.isEmpty {
+        if viewModel.filteredTasks.isEmpty && viewModel.overdueTasks.isEmpty {
             EmptyStateView(
                 icon: "checklist",
                 title: "No Tasks Yet",
@@ -239,13 +236,28 @@ struct TaskListView: View {
             }
         } else {
             List {
+                // Progress summary card
+                if viewModel.totalCount > 0 {
+                    Section {
+                        TaskProgressCard(
+                            completed: viewModel.completedCount,
+                            total: viewModel.totalCount
+                        )
+                        .listRowBackground(Color.clear)
+                        .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 4, trailing: 16))
+                        .listRowSeparator(.hidden)
+                    }
+                }
+
+                // Overdue section
                 if !viewModel.overdueTasks.isEmpty {
                     Section {
                         ForEach(viewModel.overdueTasks, id: \.id) { task in
-                            TaskRowView(task: task) {
-                                Task { await viewModel.toggleCompletion(for: task) }
-                            }
-                            .onTapGesture { selectedTask = task }
+                            TaskRowView(
+                                task: task,
+                                onToggle: { Task { await viewModel.toggleCompletion(for: task) } },
+                                onSelect: { selectedTask = task }
+                            )
                         }
                     } header: {
                         Label("Overdue", systemImage: "exclamationmark.circle.fill")
@@ -254,12 +266,14 @@ struct TaskListView: View {
                     }
                 }
 
+                // All tasks section
                 Section {
                     ForEach(viewModel.filteredTasks, id: \.id) { task in
-                        TaskRowView(task: task) {
-                            Task { await viewModel.toggleCompletion(for: task) }
-                        }
-                        .onTapGesture { selectedTask = task }
+                        TaskRowView(
+                            task: task,
+                            onToggle: { Task { await viewModel.toggleCompletion(for: task) } },
+                            onSelect: { selectedTask = task }
+                        )
                         .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                             Button(role: .destructive) {
                                 Task { await viewModel.deleteTask(task) }
@@ -294,6 +308,7 @@ struct TaskListView: View {
             } label: {
                 Image(systemName: "plus.circle.fill")
                     .font(.title3)
+                    .foregroundStyle(DesignTokens.Colors.accent)
             }
             .accessibilityLabel("Add new task")
         }
@@ -305,7 +320,6 @@ struct TaskListView: View {
                         Text(option.rawValue).tag(option)
                     }
                 }
-
                 Toggle("Show Completed", isOn: $viewModel.showCompletedTasks)
             } label: {
                 Image(systemName: "line.3.horizontal.decrease.circle")
@@ -315,65 +329,180 @@ struct TaskListView: View {
     }
 }
 
-// MARK: - Task Row View
+// MARK: - Task Progress Card
 
-struct TaskRowView: View {
-    let task: TaskItem
-    let onToggle: () -> Void
+private struct TaskProgressCard: View {
+    let completed: Int
+    let total: Int
+
+    private var remaining: Int { total - completed }
+    private var progress: Double { total == 0 ? 0.0 : Double(completed) / Double(total) }
 
     var body: some View {
-        HStack(spacing: DesignTokens.Spacing.md) {
-            Button(action: onToggle) {
-                Image(systemName: task.isCompleted ? "checkmark.circle.fill" : "circle")
-                    .font(.title3)
-                    .foregroundStyle(
-                        task.isCompleted
-                            ? DesignTokens.Colors.success
-                            : DesignTokens.Colors.textTertiary
-                    )
-                    #if compiler(>=5.9)
-                    .contentTransition(.symbolEffect(.replace))
-                    #endif
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel(task.isCompleted ? "Mark incomplete" : "Mark complete")
-
+        HStack(spacing: DesignTokens.Spacing.xl) {
             VStack(alignment: .leading, spacing: DesignTokens.Spacing.xs) {
-                Text(task.title)
-                    .font(.body.weight(.medium))
-                    .strikethrough(task.isCompleted)
-                    .foregroundStyle(
-                        task.isCompleted
-                            ? DesignTokens.Colors.textTertiary
-                            : DesignTokens.Colors.textPrimary
-                    )
-
-                if let dueDate = task.dueDate {
-                    Text(dueDate.relativeDisplay)
-                        .font(.caption)
-                        .foregroundStyle(
-                            dueDate.isOverdue && !task.isCompleted
-                                ? DesignTokens.Colors.destructive
-                                : DesignTokens.Colors.textSecondary
-                        )
+                HStack(alignment: .firstTextBaseline, spacing: DesignTokens.Spacing.xs) {
+                    Text("\(remaining)")
+                        .font(.system(size: 40, weight: .bold, design: .rounded))
+                        .foregroundStyle(DesignTokens.Colors.textPrimary)
+                    Text(remaining == 1 ? "task left" : "tasks left")
+                        .font(.subheadline.weight(.medium))
+                        .foregroundStyle(DesignTokens.Colors.textSecondary)
+                        .padding(.bottom, 4)
                 }
+                Text("\(completed) of \(total) complete")
+                    .font(.caption)
+                    .foregroundStyle(DesignTokens.Colors.textTertiary)
             }
 
             Spacer()
 
-            PriorityBadge(priority: task.priority)
+            ZStack {
+                Circle()
+                    .stroke(DesignTokens.Colors.success.opacity(0.2), lineWidth: 10)
 
-            if !task.tags.isEmpty {
-                HStack(spacing: DesignTokens.Spacing.xs) {
-                    ForEach(task.tags.prefix(2), id: \.id) { tag in
-                        TagChip(tag: tag)
-                    }
+                Circle()
+                    .trim(from: 0, to: progress)
+                    .stroke(
+                        DesignTokens.Colors.success,
+                        style: StrokeStyle(lineWidth: 10, lineCap: .round)
+                    )
+                    .rotationEffect(.degrees(-90))
+                    .animation(.spring(response: 0.8, dampingFraction: 0.75), value: progress)
+
+                VStack(spacing: 0) {
+                    Text("\(Int(progress * 100))")
+                        .font(.system(size: 15, weight: .bold, design: .rounded))
+                        .foregroundStyle(DesignTokens.Colors.success)
+                    Text("%")
+                        .font(.system(size: 9, weight: .bold))
+                        .foregroundStyle(DesignTokens.Colors.success.opacity(0.8))
                 }
             }
+            .frame(width: 68, height: 68)
+        }
+        .padding(DesignTokens.Spacing.lg)
+        .background(
+            LinearGradient(
+                colors: [
+                    DesignTokens.Colors.accent.opacity(0.08),
+                    DesignTokens.Colors.success.opacity(0.06)
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            ),
+            in: RoundedRectangle(cornerRadius: DesignTokens.Radius.lg)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: DesignTokens.Radius.lg)
+                .strokeBorder(DesignTokens.Colors.accent.opacity(0.15), lineWidth: 1)
+        )
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(remaining) tasks remaining, \(Int(progress * 100)) percent complete")
+    }
+}
+
+// MARK: - Task Row View
+//
+// Key fix: the previous implementation applied .onTapGesture to the whole row
+// while also containing a Button (the checkmark). In SwiftUI, both gestures
+// fire on the same tap — tapping the checkmark would simultaneously toggle
+// completion AND open the edit sheet.
+//
+// Fix: split into two independent Buttons — one for completion toggle
+// (the circle), one for editing (the text/detail content). No onTapGesture.
+
+struct TaskRowView: View {
+    let task: TaskItem
+    let onToggle: () -> Void
+    let onSelect: () -> Void
+
+    private var priorityColor: Color {
+        DesignTokens.Colors.priorityColor(task.priority)
+    }
+
+    var body: some View {
+        HStack(spacing: DesignTokens.Spacing.sm) {
+
+            // Priority color strip
+            Capsule()
+                .fill(task.isCompleted ? Color(.tertiarySystemFill) : priorityColor)
+                .frame(width: 4)
+                .padding(.vertical, DesignTokens.Spacing.xs)
+                .animation(.easeInOut(duration: 0.25), value: task.isCompleted)
+
+            // Completion circle — only this button toggles completion
+            Button(action: onToggle) {
+                ZStack {
+                    Circle()
+                        .strokeBorder(
+                            task.isCompleted
+                                ? DesignTokens.Colors.success
+                                : priorityColor.opacity(0.55),
+                            lineWidth: 2
+                        )
+                        .frame(width: 28, height: 28)
+                        .background(
+                            task.isCompleted
+                                ? DesignTokens.Colors.success.opacity(0.15)
+                                : Color.clear,
+                            in: Circle()
+                        )
+
+                    if task.isCompleted {
+                        Image(systemName: "checkmark")
+                            .font(.system(size: 11, weight: .bold))
+                            .foregroundStyle(DesignTokens.Colors.success)
+                    }
+                }
+                .animation(.spring(response: 0.3, dampingFraction: 0.65), value: task.isCompleted)
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel(task.isCompleted ? "Mark incomplete" : "Mark complete")
+
+            // Task content — only this button opens the editor
+            Button(action: onSelect) {
+                VStack(alignment: .leading, spacing: DesignTokens.Spacing.xxs) {
+                    Text(task.title)
+                        .font(.body.weight(.medium))
+                        .strikethrough(task.isCompleted)
+                        .foregroundStyle(
+                            task.isCompleted
+                                ? DesignTokens.Colors.textTertiary
+                                : DesignTokens.Colors.textPrimary
+                        )
+                        .multilineTextAlignment(.leading)
+                        .animation(.easeInOut(duration: 0.2), value: task.isCompleted)
+
+                    HStack(spacing: DesignTokens.Spacing.xs) {
+                        if let dueDate = task.dueDate {
+                            Label(dueDate.relativeDisplay, systemImage: "clock")
+                                .font(.caption)
+                                .foregroundStyle(
+                                    dueDate.isOverdue && !task.isCompleted
+                                        ? DesignTokens.Colors.destructive
+                                        : DesignTokens.Colors.textSecondary
+                                )
+                        }
+
+                        if !task.tags.isEmpty {
+                            HStack(spacing: DesignTokens.Spacing.xxs) {
+                                ForEach(task.tags.prefix(2), id: \.id) { tag in
+                                    TagChip(tag: tag)
+                                }
+                            }
+                        }
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Edit: \(task.title)")
+
+            PriorityBadge(priority: task.priority)
         }
         .padding(.vertical, DesignTokens.Spacing.xs)
-        .contentShape(Rectangle())
-        .accessibilityElement(children: .combine)
     }
 }
 
@@ -422,6 +551,7 @@ struct TaskDetailSheet: View {
                             displayedComponents: [.date, .hourAndMinute]
                         )
                         .datePickerStyle(.graphical)
+                        .tint(DesignTokens.Colors.accent)
                         .accessibilityLabel("Select due date")
                     }
                 }
