@@ -69,8 +69,9 @@ final class TaskRepository: TaskRepositoryProtocol {
     func fetchOverdue() throws -> [TaskItem] {
         let now = Date.now
         #if compiler(>=5.9)
+        let distantFuture = Date.distantFuture
         let predicate = #Predicate<TaskItem> { task in
-            !task.isCompleted && task.dueDate != nil && task.dueDate! < now
+            task.isCompleted == false && (task.dueDate ?? distantFuture) < now
         }
         var descriptor = FetchDescriptor(predicate: predicate)
         #else
