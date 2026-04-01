@@ -464,7 +464,7 @@ struct TaskRowView: View {
             Button(action: onSelect) {
                 VStack(alignment: .leading, spacing: DesignTokens.Spacing.xxs) {
                     Text(task.title)
-                        .font(.body.weight(.medium))
+                        .font(.callout)
                         .strikethrough(task.isCompleted)
                         .foregroundStyle(
                             task.isCompleted
