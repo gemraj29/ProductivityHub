@@ -221,8 +221,8 @@ extension View {
 
     func sectionHeader() -> some View {
         self
-            .font(.headline.weight(.bold))
-            .foregroundStyle(DesignTokens.Colors.textPrimary)
+            .font(.footnote.weight(.semibold))
+            .foregroundStyle(DesignTokens.Colors.textSecondary)
             .accessibilityAddTraits(.isHeader)
     }
 }
