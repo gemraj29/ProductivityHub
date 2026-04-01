@@ -12,28 +12,29 @@ enum DesignTokens {
     // MARK: Colors
 
     enum Colors {
-        static let accent = Color("AccentBlue", bundle: nil)
-            // Fallback for when asset catalog isn't set up:
-            ?? Color(red: 0.35, green: 0.34, blue: 0.84)
+        // Direct RGB values — no asset catalog required.
+        // Previously used Color("AccentBlue") which silently renders as clear
+        // when the named color asset doesn't exist in the catalog.
+        static let accent = Color(red: 0.37, green: 0.36, blue: 0.90)
 
-        static let destructive = Color.red
-        static let success = Color.green
-        static let warning = Color.orange
+        static let destructive = Color(.systemRed)
+        static let success     = Color(.systemGreen)
+        static let warning     = Color(.systemOrange)
 
-        static let surfacePrimary = Color(.systemBackground)
+        static let surfacePrimary   = Color(.systemBackground)
         static let surfaceSecondary = Color(.secondarySystemBackground)
-        static let surfaceTertiary = Color(.tertiarySystemBackground)
+        static let surfaceTertiary  = Color(.tertiarySystemBackground)
 
-        static let textPrimary = Color(.label)
+        static let textPrimary   = Color(.label)
         static let textSecondary = Color(.secondaryLabel)
-        static let textTertiary = Color(.tertiaryLabel)
+        static let textTertiary  = Color(.tertiaryLabel)
 
         static func priorityColor(_ priority: Priority) -> Color {
             switch priority {
-            case .low:    return .gray
-            case .medium: return .blue
-            case .high:   return .orange
-            case .urgent: return .red
+            case .low:    return Color(.systemTeal)
+            case .medium: return Color(.systemBlue)
+            case .high:   return Color(.systemOrange)
+            case .urgent: return Color(.systemRed)
             }
         }
 
@@ -44,9 +45,9 @@ enum DesignTokens {
                 return .gray
             }
             return Color(
-                red: Double((value >> 16) & 0xFF) / 255.0,
-                green: Double((value >> 8) & 0xFF) / 255.0,
-                blue: Double(value & 0xFF) / 255.0
+                red:   Double((value >> 16) & 0xFF) / 255.0,
+                green: Double((value >> 8)  & 0xFF) / 255.0,
+                blue:  Double(value         & 0xFF) / 255.0
             )
         }
     }
@@ -55,11 +56,11 @@ enum DesignTokens {
 
     enum Spacing {
         static let xxs: CGFloat = 2
-        static let xs: CGFloat = 4
-        static let sm: CGFloat = 8
-        static let md: CGFloat = 12
-        static let lg: CGFloat = 16
-        static let xl: CGFloat = 24
+        static let xs:  CGFloat = 4
+        static let sm:  CGFloat = 8
+        static let md:  CGFloat = 12
+        static let lg:  CGFloat = 16
+        static let xl:  CGFloat = 24
         static let xxl: CGFloat = 32
         static let xxxl: CGFloat = 48
     }
@@ -67,9 +68,9 @@ enum DesignTokens {
     // MARK: Corner Radius
 
     enum Radius {
-        static let sm: CGFloat = 6
-        static let md: CGFloat = 10
-        static let lg: CGFloat = 16
+        static let sm:   CGFloat = 6
+        static let md:   CGFloat = 10
+        static let lg:   CGFloat = 16
         static let pill: CGFloat = 999
     }
 }
@@ -86,7 +87,7 @@ struct PriorityBadge: View {
             .padding(.horizontal, DesignTokens.Spacing.sm)
             .padding(.vertical, DesignTokens.Spacing.xs)
             .background(
-                DesignTokens.Colors.priorityColor(priority).opacity(0.12),
+                DesignTokens.Colors.priorityColor(priority).opacity(0.15),
                 in: Capsule()
             )
             .accessibilityLabel("\(priority.label) priority")
@@ -98,7 +99,7 @@ struct TagChip: View {
 
     var body: some View {
         Text(tag.name)
-            .font(.caption)
+            .font(.caption.weight(.medium))
             .foregroundStyle(.white)
             .padding(.horizontal, DesignTokens.Spacing.sm)
             .padding(.vertical, DesignTokens.Spacing.xs)
@@ -125,33 +126,46 @@ struct EmptyStateView: View {
             Text(subtitle)
         } actions: {
             if let actionTitle, let action {
-                Button(actionTitle, action: action)
-                    .buttonStyle(.bordered)
+                Button(action: action) {
+                    Label(actionTitle, systemImage: "plus")
+                }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
+                .tint(DesignTokens.Colors.accent)
             }
         }
         #else
-        VStack(spacing: DesignTokens.Spacing.md) {
+        VStack(spacing: DesignTokens.Spacing.lg) {
             Image(systemName: icon)
-                .font(.system(size: 48))
-                .foregroundStyle(DesignTokens.Colors.textTertiary)
+                .font(.system(size: 60))
+                .foregroundStyle(DesignTokens.Colors.accent.opacity(0.7))
                 .padding(.bottom, DesignTokens.Spacing.sm)
-            
-            Text(title)
-                .font(.headline)
-            
-            Text(subtitle)
-                .font(.subheadline)
-                .foregroundStyle(DesignTokens.Colors.textSecondary)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, DesignTokens.Spacing.xl)
-            
+
+            VStack(spacing: DesignTokens.Spacing.sm) {
+                Text(title)
+                    .font(.title2.weight(.bold))
+                    .foregroundStyle(DesignTokens.Colors.textPrimary)
+
+                Text(subtitle)
+                    .font(.subheadline)
+                    .foregroundStyle(DesignTokens.Colors.textSecondary)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, DesignTokens.Spacing.xxl)
+            }
+
             if let actionTitle, let action {
-                Button(actionTitle, action: action)
-                    .buttonStyle(.bordered)
-                    .padding(.top, DesignTokens.Spacing.md)
+                Button(action: action) {
+                    Label(actionTitle, systemImage: "plus")
+                        .font(.body.weight(.semibold))
+                }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
+                .tint(DesignTokens.Colors.accent)
+                .padding(.top, DesignTokens.Spacing.md)
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .padding()
         #endif
     }
 }
