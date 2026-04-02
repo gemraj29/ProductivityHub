@@ -270,7 +270,7 @@ struct EventRowView: View {
                     .padding(.horizontal, DesignTokens.Spacing.sm)
                     .padding(.vertical, DesignTokens.Spacing.xxs)
                     .background(
-                        DesignTokens.Colors.surfaceTertiary,
+                        DesignTokens.Colors.surfaceSecondary,
                         in: Capsule()
                     )
             }

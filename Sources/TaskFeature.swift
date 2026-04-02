@@ -25,7 +25,11 @@ final class TaskListViewModel: ObservableObject {
         self.notificationService = notificationService
     }
 
-    deinit { #if DEBUG; print("TaskListViewModel deinitialized"); #endif }
+    deinit {
+        #if DEBUG
+        print("TaskListViewModel deinitialized")
+        #endif
+    }
 
     // MARK: Computed
 

@@ -267,7 +267,7 @@ struct DashboardView: View {
                 DSStatCard(
                     icon: "brain.head.profile",
                     iconColor: DesignTokens.Colors.warning,
-                    value: "\(viewModel.deepWorkCount * 15 / 10, specifier: "%.1f")h",
+                    value: String(format: "%.1fh", Double(viewModel.deepWorkCount) * 1.5),
                     label: "Deep Work Hours"
                 )
             }
