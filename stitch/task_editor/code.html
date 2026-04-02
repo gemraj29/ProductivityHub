@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Task Editor - Deep Sea Productivity</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        h1, h2, h3 {
+            font-family: 'Manrope', sans-serif;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-primary": "#ffffff",
+                        "outline": "#71787f",
+                        "tertiary-fixed": "#ffdbd2",
+                        "error-container": "#ffdad6",
+                        "on-secondary-fixed": "#101d26",
+                        "on-error": "#ffffff",
+                        "primary-container": "#004b6e",
+                        "on-primary-fixed-variant": "#014b6e",
+                        "secondary-fixed-dim": "#bbc8d5",
+                        "tertiary-fixed-dim": "#ffb4a1",
+                        "on-secondary-container": "#57646f",
+                        "on-tertiary-fixed": "#3c0800",
+                        "surface-container-lowest": "#ffffff",
+                        "secondary-container": "#d4e1ee",
+                        "surface-container-low": "#f2f4f7",
+                        "on-tertiary": "#ffffff",
+                        "on-primary-container": "#85bae3",
+                        "surface-tint": "#296388",
+                        "secondary": "#53606b",
+                        "on-secondary": "#ffffff",
+                        "surface-container-high": "#e6e8eb",
+                        "on-tertiary-fixed-variant": "#862206",
+                        "background": "#f7f9fc",
+                        "surface-container-highest": "#e0e3e6",
+                        "surface": "#f7f9fc",
+                        "tertiary": "#601200",
+                        "on-primary-fixed": "#001e2f",
+                        "primary": "#00334d",
+                        "secondary-fixed": "#d7e4f1",
+                        "surface-variant": "#e0e3e6",
+                        "inverse-surface": "#2d3133",
+                        "surface-bright": "#f7f9fc",
+                        "tertiary-container": "#852205",
+                        "inverse-primary": "#97cdf6",
+                        "surface-container": "#eceef1",
+                        "on-surface-variant": "#41484e",
+                        "on-background": "#191c1e",
+                        "error": "#ba1a1a",
+                        "surface-dim": "#d8dadd",
+                        "on-secondary-fixed-variant": "#3b4853",
+                        "inverse-on-surface": "#eff1f4",
+                        "primary-fixed": "#c9e6ff",
+                        "primary-fixed-dim": "#97cdf6",
+                        "on-surface": "#191c1e",
+                        "on-error-container": "#93000a",
+                        "outline-variant": "#c1c7cf",
+                        "on-tertiary-container": "#ff9a7f"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface min-h-screen flex flex-col">
+<!-- TopAppBar -->
+<header class="bg-[#f7f9fc] dark:bg-[#191c1e] w-full pt-4 pb-2">
+<div class="flex items-center justify-between px-8 w-full max-w-7xl mx-auto">
+<div class="flex items-center gap-4">
+<button class="hover:bg-[#e0e3e6]/50 transition-colors p-2 rounded-full active:scale-95 duration-200">
+<span class="material-symbols-outlined text-primary">arrow_back</span>
+</button>
+<h1 class="font-manrope font-semibold text-2xl tracking-tight text-[#004B6E] dark:text-[#c9e6ff]">Task Editor</h1>
+</div>
+<div class="flex items-center gap-4">
+<button class="bg-gradient-to-br from-[#00334d] to-[#004b6e] text-white px-6 py-2.5 rounded-xl font-semibold text-sm shadow-lg hover:opacity-90 active:scale-95 transition-all">
+                    Save
+                </button>
+</div>
+</div>
+</header>
+<main class="flex-grow w-full max-w-4xl mx-auto px-8 py-12">
+<div class="space-y-10">
+<!-- Hero Image / Visual Anchor -->
+<div class="relative h-48 w-full rounded-[2rem] overflow-hidden shadow-sm">
+<img class="w-full h-full object-cover" data-alt="Minimalist workspace with a clean white desk, a single green plant, and soft morning sunlight creating gentle shadows" src="https://lh3.googleusercontent.com/aida-public/AB6AXuByXisFXAbbc7nbWJnOYaJFy5V1OTayadn48fuSiAZi7OBvnTTbAaX1obZ6yDk5TtW5s2j96uGl_Ra2AakBmCqQf4E212janAj8Ie-9xBfDsteM0SeHbCGjUuoaU_oZ3PSb_OMp7hvdvz6OHa4S6RPEHK9H0yknES8PJM7hI0JyZg2tiarJLaxt6SMZ0MOnTpPx7cjcPislv6F1jmBfZ3czzgz3tyV8jPwfbd2o80pXaHcp1MWtu-d2opck7OWGTxEXYmyVc8zSDeQ"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
+<div class="absolute bottom-6 left-8">
+<span class="text-white/80 text-xs font-medium tracking-[0.2em] uppercase">Workflow Detail</span>
+<h2 class="text-white text-3xl font-bold mt-1">Refine your focus.</h2>
+</div>
+</div>
+<!-- Form Section -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-12">
+<!-- Main Fields -->
+<div class="md:col-span-8 space-y-8">
+<!-- Title Input -->
+<div class="space-y-2">
+<label class="text-label-sm font-semibold text-on-surface-variant ml-1 tracking-wide">Task Title</label>
+<input class="w-full bg-surface-container-highest border-none rounded-xl px-6 py-4 text-headline-sm font-manrope font-semibold focus:ring-2 focus:ring-primary/20 focus:bg-surface-container-lowest transition-all placeholder:text-outline/50" placeholder="Enter task name..." type="text"/>
+</div>
+<!-- Description Input -->
+<div class="space-y-2">
+<label class="text-label-sm font-semibold text-on-surface-variant ml-1 tracking-wide">Description</label>
+<textarea class="w-full bg-surface-container-highest border-none rounded-xl px-6 py-4 text-body-md focus:ring-2 focus:ring-primary/20 focus:bg-surface-container-lowest transition-all placeholder:text-outline/50 resize-none" placeholder="Describe the steps or objectives..." rows="6"></textarea>
+</div>
+</div>
+<!-- Metadata Side Panel -->
+<div class="md:col-span-4 space-y-8">
+<!-- Due Date -->
+<div class="bg-surface-container-low p-6 rounded-[1.5rem] space-y-4">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary text-xl">calendar_today</span>
+<label class="text-sm font-semibold text-on-surface">Due Date</label>
+</div>
+<input class="w-full bg-surface-container-lowest border-none rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-primary/20 transition-all" type="date"/>
+</div>
+<!-- Priority Selector -->
+<div class="bg-surface-container-low p-6 rounded-[1.5rem] space-y-4">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary text-xl">priority_high</span>
+<label class="text-sm font-semibold text-on-surface">Priority</label>
+</div>
+<div class="grid grid-cols-1 gap-2">
+<button class="flex items-center justify-between px-4 py-3 bg-primary-fixed text-on-primary-fixed rounded-lg text-xs font-semibold hover:opacity-80 transition-opacity">
+<span>Low</span>
+<span class="material-symbols-outlined text-base">check_circle</span>
+</button>
+<button class="flex items-center justify-between px-4 py-3 bg-surface-container-highest text-on-secondary-fixed-variant rounded-lg text-xs font-semibold hover:bg-surface-container-high transition-colors">
+<span>Medium</span>
+</button>
+<button class="flex items-center justify-between px-4 py-3 bg-surface-container-highest text-on-secondary-fixed-variant rounded-lg text-xs font-semibold hover:bg-surface-container-high transition-colors">
+<span>High</span>
+</button>
+</div>
+</div>
+<!-- Category Selector -->
+<div class="bg-surface-container-low p-6 rounded-[1.5rem] space-y-4">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary text-xl">folder_open</span>
+<label class="text-sm font-semibold text-on-surface">Category</label>
+</div>
+<select class="w-full bg-surface-container-lowest border-none rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-primary/20 transition-all appearance-none">
+<option>Deep Work</option>
+<option>Personal</option>
+<option>Collaboration</option>
+<option>Learning</option>
+</select>
+</div>
+</div>
+</div>
+<!-- Additional Context - Bento Style -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 pt-6">
+<div class="md:col-span-1 bg-secondary-container rounded-[1.5rem] p-6 flex flex-col justify-between">
+<span class="material-symbols-outlined text-primary text-3xl">attach_file</span>
+<div>
+<h4 class="font-manrope font-bold text-primary mt-4">Attachments</h4>
+<p class="text-on-secondary-container text-xs mt-1">Upload relevant documents or links.</p>
+</div>
+</div>
+<div class="md:col-span-2 bg-surface-container-highest rounded-[1.5rem] p-6 flex items-center justify-between">
+<div class="flex gap-4">
+<div class="w-12 h-12 rounded-full overflow-hidden border-2 border-white shadow-sm">
+<img class="w-full h-full object-cover" data-alt="Professional headshot of a middle-aged man with short hair and a confident expression against a neutral studio background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBtDmTdBknr-Tu8xubWenFttW8jY20T5H0_JU5SEM2e5JVfPOk00M7D_heNXduyLVvTewpkdLCjTAo9fqPkYlEACu0BuOdRuGA6gFy9hNdpT87_7iGG-aA5mZOoflhBDdQX1-qzot6I-HgTrJaory15BZkjNfrmn5gZgL-JFi3tCN2pSXmyffXd31iYVOB_nJ8k30GpTG4OT8fZfzxCjg1zJnyGDtf0Pqfs9cQTWzeSASRqK3tzd55P1bCe7bwLdLN6UywJ-Wnyepk"/>
+</div>
+<div>
+<h4 class="font-manrope font-bold text-on-surface">Assigned to Me</h4>
+<p class="text-on-surface-variant text-xs">Collaborators can be added after saving.</p>
+</div>
+</div>
+<button class="p-3 bg-surface-container-lowest rounded-full shadow-sm hover:scale-105 active:scale-95 transition-all">
+<span class="material-symbols-outlined text-primary">person_add</span>
+</button>
+</div>
+</div>
+</div>
+</main>
+<!-- BottomNavBar (Mobile only) -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full flex justify-around items-center px-6 pb-8 pt-4 bg-[#ffffff]/80 dark:bg-[#191c1e]/80 backdrop-blur-xl rounded-t-[2rem] z-50 shadow-[0_-10px_30px_rgba(0,51,77,0.08)]">
+<div class="flex flex-col items-center justify-center text-[#41484e] dark:text-[#c1c7cf] p-3 hover:opacity-80 transition-opacity">
+<span class="material-symbols-outlined">home</span>
+</div>
+<div class="flex flex-col items-center justify-center bg-gradient-to-br from-[#00334d] to-[#004b6e] text-white rounded-2xl p-3 shadow-lg active:scale-90 duration-200">
+<span class="material-symbols-outlined">list_alt</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#41484e] dark:text-[#c1c7cf] p-3 hover:opacity-80 transition-opacity">
+<span class="material-symbols-outlined">add_circle</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#41484e] dark:text-[#c1c7cf] p-3 hover:opacity-80 transition-opacity">
+<span class="material-symbols-outlined">insights</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#41484e] dark:text-[#c1c7cf] p-3 hover:opacity-80 transition-opacity">
+<span class="material-symbols-outlined">settings</span>
+</div>
+</nav>
+<footer class="mt-auto py-12 text-center text-outline/40 text-xs">
+<p>© 2024 Deep Sea Productivity. Flow state enabled.</p>
+</footer>
+</body></html>
