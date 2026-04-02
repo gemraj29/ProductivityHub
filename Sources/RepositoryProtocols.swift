@@ -7,8 +7,10 @@ import Foundation
 
 // MARK: - Task Repository
 
-@MainActor
-protocol TaskRepositoryProtocol: Sendable {
+// Protocols are not @MainActor: repositories are called from @MainActor ViewModels
+// (which provides actor isolation at the call site) but tests need to call them from
+// async Tasks without triggering Swift 5.10 runtime actor-isolation checks.
+protocol TaskRepositoryProtocol: AnyObject, Sendable {
     func fetchAll() throws -> [TaskItem]
     func fetchIncomplete() throws -> [TaskItem]
     func fetchCompleted() throws -> [TaskItem]
@@ -21,8 +23,7 @@ protocol TaskRepositoryProtocol: Sendable {
 
 // MARK: - Note Repository
 
-@MainActor
-protocol NoteRepositoryProtocol: Sendable {
+protocol NoteRepositoryProtocol: AnyObject, Sendable {
     func fetchAll() throws -> [NoteItem]
     func fetchPinned() throws -> [NoteItem]
     func search(query: String) throws -> [NoteItem]
@@ -34,8 +35,7 @@ protocol NoteRepositoryProtocol: Sendable {
 
 // MARK: - Calendar Event Repository
 
-@MainActor
-protocol CalendarEventRepositoryProtocol: Sendable {
+protocol CalendarEventRepositoryProtocol: AnyObject, Sendable {
     func fetchAll() throws -> [CalendarEvent]
     func fetchEvents(from startDate: Date, to endDate: Date) throws -> [CalendarEvent]
     func fetchEventsForDay(_ date: Date) throws -> [CalendarEvent]

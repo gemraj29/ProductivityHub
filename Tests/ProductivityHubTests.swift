@@ -15,17 +15,18 @@ import SwiftData
 
 // MARK: - Test Infrastructure
 
-/// In-memory model container for isolated tests
+/// In-memory model container for isolated tests.
+/// Uses `ModelContext(container)` (not `container.mainContext`) so it is NOT @MainActor-
+/// isolated — this lets async XCTest methods call repository methods without triggering
+/// Swift 5.10 runtime actor-isolation checks that crash the test process.
 #if compiler(>=5.9)
-@MainActor
 func makeTestModelContext() throws -> ModelContext {
     let schema = Schema([TaskItem.self, NoteItem.self, CalendarEvent.self, Tag.self])
     let config = ModelConfiguration("TestStore", schema: schema, isStoredInMemoryOnly: true)
     let container = try ModelContainer(for: schema, configurations: [config])
-    return container.mainContext
+    return ModelContext(container)
 }
 #else
-@MainActor
 func makeTestModelContext() throws -> ModelContext {
     ModelContext.clearSharedStorage()
     return ModelContext()
@@ -109,14 +110,13 @@ extension CalendarEvent {
 // MARK: - Task Repository Tests
 // ═══════════════════════════════════════════════════════════════
 
-@MainActor
 final class TaskRepositoryTests: XCTestCase {
     private var sut: TaskRepository!
     private var context: ModelContext!
 
-    override func setUp() {
-        super.setUp()
-        context = try! makeTestModelContext()
+    override func setUpWithError() throws {
+        try super.setUpWithError()
+        context = try makeTestModelContext()
         sut = TaskRepository(modelContext: context)
     }
 
@@ -193,15 +193,15 @@ final class TaskRepositoryTests: XCTestCase {
 // MARK: - Task List ViewModel Tests
 // ═══════════════════════════════════════════════════════════════
 
-@MainActor
 final class TaskListViewModelTests: XCTestCase {
     private var sut: TaskListViewModel!
     private var repo: TaskRepository!
     private var mockNotifications: MockNotificationService!
 
-    override func setUp() {
-        super.setUp()
-        let context = try! makeTestModelContext()
+    @MainActor
+    override func setUp() async throws {
+        try await super.setUp()
+        let context = try makeTestModelContext()
         repo = TaskRepository(modelContext: context)
         mockNotifications = MockNotificationService()
         sut = TaskListViewModel(
@@ -210,13 +210,15 @@ final class TaskListViewModelTests: XCTestCase {
         )
     }
 
-    override func tearDown() {
+    @MainActor
+    override func tearDown() async throws {
         sut = nil
         repo = nil
         mockNotifications = nil
-        super.tearDown()
+        try await super.tearDown()
     }
 
+    @MainActor
     func test_load_setsLoadedState() async throws {
         try repo.insert(.stub(title: "Task A"))
         try repo.insert(.stub(title: "Task B"))
@@ -230,6 +232,7 @@ final class TaskListViewModelTests: XCTestCase {
         }
     }
 
+    @MainActor
     func test_toggleCompletion_marksTaskComplete() async throws {
         let task = TaskItem.stub(title: "Toggle Me")
         try repo.insert(task)
@@ -241,6 +244,7 @@ final class TaskListViewModelTests: XCTestCase {
         XCTAssertEqual(mockNotifications.cancelledReminders.count, 1)
     }
 
+    @MainActor
     func test_toggleCompletion_marksCompletedTaskIncomplete() async throws {
         let task = TaskItem.stub(title: "Re-open", isCompleted: true)
         try repo.insert(task)
@@ -251,6 +255,7 @@ final class TaskListViewModelTests: XCTestCase {
         XCTAssertFalse(task.isCompleted)
     }
 
+    @MainActor
     func test_filteredTasks_respectsShowCompleted() async throws {
         try repo.insert(.stub(title: "Open"))
         try repo.insert(.stub(title: "Done", isCompleted: true))
@@ -264,6 +269,7 @@ final class TaskListViewModelTests: XCTestCase {
         XCTAssertEqual(sut.filteredTasks.count, 2)
     }
 
+    @MainActor
     func test_filteredTasks_respectsSearchText() async throws {
         try repo.insert(.stub(title: "Buy milk"))
         try repo.insert(.stub(title: "Call dentist"))
@@ -275,6 +281,7 @@ final class TaskListViewModelTests: XCTestCase {
         XCTAssertEqual(sut.filteredTasks.first?.title, "Buy milk")
     }
 
+    @MainActor
     func test_deleteTask_removesTaskAndCancelsNotification() async throws {
         let task = TaskItem.stub(title: "Delete me")
         try repo.insert(task)
@@ -291,13 +298,12 @@ final class TaskListViewModelTests: XCTestCase {
 // MARK: - Task Detail ViewModel Tests
 // ═══════════════════════════════════════════════════════════════
 
-@MainActor
 final class TaskDetailViewModelTests: XCTestCase {
     private var repo: TaskRepository!
 
-    override func setUp() {
-        super.setUp()
-        let context = try! makeTestModelContext()
+    override func setUpWithError() throws {
+        try super.setUpWithError()
+        let context = try makeTestModelContext()
         repo = TaskRepository(modelContext: context)
     }
 
@@ -306,6 +312,7 @@ final class TaskDetailViewModelTests: XCTestCase {
         super.tearDown()
     }
 
+    @MainActor
     func test_newTask_isValid_requiresNonEmptyTitle() {
         let sut = TaskDetailViewModel(task: nil, taskRepository: repo)
 
@@ -319,6 +326,7 @@ final class TaskDetailViewModelTests: XCTestCase {
         XCTAssertTrue(sut.isValid)
     }
 
+    @MainActor
     func test_newTask_save_insertsTask() async throws {
         let sut = TaskDetailViewModel(task: nil, taskRepository: repo)
         sut.title = "New Task"
@@ -332,6 +340,7 @@ final class TaskDetailViewModelTests: XCTestCase {
         XCTAssertEqual(tasks.first?.priority, .high)
     }
 
+    @MainActor
     func test_editTask_save_updatesExistingTask() async throws {
         let existing = TaskItem.stub(title: "Old Title")
         try repo.insert(existing)
@@ -346,6 +355,7 @@ final class TaskDetailViewModelTests: XCTestCase {
         XCTAssertEqual(existing.priority, .urgent)
     }
 
+    @MainActor
     func test_save_withEmptyTitle_throws() async {
         let sut = TaskDetailViewModel(task: nil, taskRepository: repo)
         sut.title = ""
@@ -363,13 +373,12 @@ final class TaskDetailViewModelTests: XCTestCase {
 // MARK: - Note Repository Tests
 // ═══════════════════════════════════════════════════════════════
 
-@MainActor
 final class NoteRepositoryTests: XCTestCase {
     private var sut: NoteRepository!
 
-    override func setUp() {
-        super.setUp()
-        let context = try! makeTestModelContext()
+    override func setUpWithError() throws {
+        try super.setUpWithError()
+        let context = try makeTestModelContext()
         sut = NoteRepository(modelContext: context)
     }
 
@@ -420,14 +429,14 @@ final class NoteRepositoryTests: XCTestCase {
 // MARK: - Note List ViewModel Tests
 // ═══════════════════════════════════════════════════════════════
 
-@MainActor
 final class NoteListViewModelTests: XCTestCase {
     private var sut: NoteListViewModel!
     private var repo: NoteRepository!
 
-    override func setUp() {
-        super.setUp()
-        let context = try! makeTestModelContext()
+    @MainActor
+    override func setUp() async throws {
+        try await super.setUp()
+        let context = try makeTestModelContext()
         repo = NoteRepository(modelContext: context)
         sut = NoteListViewModel(
             noteRepository: repo,
@@ -435,12 +444,14 @@ final class NoteListViewModelTests: XCTestCase {
         )
     }
 
-    override func tearDown() {
+    @MainActor
+    override func tearDown() async throws {
         sut = nil
         repo = nil
-        super.tearDown()
+        try await super.tearDown()
     }
 
+    @MainActor
     func test_load_populatesNotes() async throws {
         try repo.insert(.stub(title: "Note A"))
         try repo.insert(.stub(title: "Note B"))
@@ -450,6 +461,7 @@ final class NoteListViewModelTests: XCTestCase {
         XCTAssertEqual(sut.notes.count, 2)
     }
 
+    @MainActor
     func test_pinnedNotes_separatedFromUnpinned() async throws {
         try repo.insert(.stub(title: "Pinned", isPinned: true))
         try repo.insert(.stub(title: "Normal", isPinned: false))
@@ -459,6 +471,7 @@ final class NoteListViewModelTests: XCTestCase {
         XCTAssertEqual(sut.unpinnedNotes.count, 1)
     }
 
+    @MainActor
     func test_togglePin_switchesPinState() async throws {
         let note = NoteItem.stub(title: "Pin Me", isPinned: false)
         try repo.insert(note)
@@ -469,6 +482,7 @@ final class NoteListViewModelTests: XCTestCase {
         XCTAssertTrue(note.isPinned)
     }
 
+    @MainActor
     func test_deleteNote_removesNote() async throws {
         let note = NoteItem.stub()
         try repo.insert(note)
@@ -485,16 +499,16 @@ final class NoteListViewModelTests: XCTestCase {
 // MARK: - Note Editor ViewModel Tests
 // ═══════════════════════════════════════════════════════════════
 
-@MainActor
 final class NoteEditorViewModelTests: XCTestCase {
     private var repo: NoteRepository!
 
-    override func setUp() {
-        super.setUp()
-        let context = try! makeTestModelContext()
+    override func setUpWithError() throws {
+        try super.setUpWithError()
+        let context = try makeTestModelContext()
         repo = NoteRepository(modelContext: context)
     }
 
+    @MainActor
     func test_isValid_requiresNonEmptyTitle() {
         let sut = NoteEditorViewModel(note: nil, noteRepository: repo)
 
@@ -505,6 +519,7 @@ final class NoteEditorViewModelTests: XCTestCase {
         XCTAssertTrue(sut.isValid)
     }
 
+    @MainActor
     func test_wordCount_calculatesCorrectly() {
         let sut = NoteEditorViewModel(note: nil, noteRepository: repo)
         sut.content = "Hello world from the test"
@@ -512,6 +527,7 @@ final class NoteEditorViewModelTests: XCTestCase {
         XCTAssertEqual(sut.wordCount, 5)
     }
 
+    @MainActor
     func test_save_newNote_insertsIntoRepository() async throws {
         let sut = NoteEditorViewModel(note: nil, noteRepository: repo)
         sut.title = "Fresh Note"
@@ -524,6 +540,7 @@ final class NoteEditorViewModelTests: XCTestCase {
         XCTAssertEqual(notes.first?.title, "Fresh Note")
     }
 
+    @MainActor
     func test_save_existingNote_updatesInPlace() async throws {
         let existing = NoteItem.stub(title: "Original")
         try repo.insert(existing)
@@ -543,14 +560,14 @@ final class NoteEditorViewModelTests: XCTestCase {
 // MARK: - Calendar ViewModel Tests
 // ═══════════════════════════════════════════════════════════════
 
-@MainActor
 final class CalendarHubViewModelTests: XCTestCase {
     private var sut: CalendarHubViewModel!
     private var repo: CalendarEventRepository!
 
-    override func setUp() {
-        super.setUp()
-        let context = try! makeTestModelContext()
+    @MainActor
+    override func setUp() async throws {
+        try await super.setUp()
+        let context = try makeTestModelContext()
         repo = CalendarEventRepository(modelContext: context)
         sut = CalendarHubViewModel(
             eventRepository: repo,
@@ -558,12 +575,14 @@ final class CalendarHubViewModelTests: XCTestCase {
         )
     }
 
-    override func tearDown() {
+    @MainActor
+    override func tearDown() async throws {
         sut = nil
         repo = nil
-        super.tearDown()
+        try await super.tearDown()
     }
 
+    @MainActor
     func test_load_fetchesEventsForSelectedDay() async throws {
         let today = Date.now
         try repo.insert(.stub(title: "Today Event", startDate: today))
@@ -578,6 +597,7 @@ final class CalendarHubViewModelTests: XCTestCase {
         XCTAssertEqual(sut.eventsForSelectedDay.first?.title, "Today Event")
     }
 
+    @MainActor
     func test_createEvent_addsEventAndReloads() async throws {
         try await sut.createEvent(
             title: "Team Standup",
@@ -591,6 +611,7 @@ final class CalendarHubViewModelTests: XCTestCase {
         XCTAssertEqual(sut.eventsForSelectedDay.count, 1)
     }
 
+    @MainActor
     func test_createEvent_emptyTitle_throws() async {
         do {
             try await sut.createEvent(
@@ -607,6 +628,7 @@ final class CalendarHubViewModelTests: XCTestCase {
         }
     }
 
+    @MainActor
     func test_createEvent_endBeforeStart_throws() async {
         do {
             try await sut.createEvent(
@@ -623,6 +645,7 @@ final class CalendarHubViewModelTests: XCTestCase {
         }
     }
 
+    @MainActor
     func test_deleteEvent_removesEvent() async throws {
         let event = CalendarEvent.stub(title: "Delete Me")
         try repo.insert(event)
@@ -634,6 +657,7 @@ final class CalendarHubViewModelTests: XCTestCase {
         XCTAssertEqual(sut.eventsForSelectedDay.count, 0)
     }
 
+    @MainActor
     func test_selectDate_updatesEventsForNewDay() async throws {
         let tomorrow = Calendar.current.date(byAdding: .day, value: 1, to: .now)!
         try repo.insert(.stub(title: "Tomorrow's Event", startDate: tomorrow))
