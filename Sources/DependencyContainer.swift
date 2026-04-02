@@ -30,11 +30,39 @@ final class DependencyContainer: Sendable {
 
     private init() {
         let schema = Schema([TaskItem.self, NoteItem.self, CalendarEvent.self, Tag.self])
-        let config = ModelConfiguration("ProductivityHub", schema: schema, isStoredInMemoryOnly: false)
+
+        // Resolve the on-disk store URL so we can nuke it on migration failure.
+        let storeURL = URL.applicationSupportDirectory
+            .appending(component: "ProductivityHub.store", directoryHint: .notDirectory)
+        let config = ModelConfiguration(
+            "ProductivityHub",
+            schema: schema,
+            url: storeURL
+        )
+
+        func makeContainer() throws -> ModelContainer {
+            try ModelContainer(for: schema, configurations: [config])
+        }
+
         do {
-            self.modelContainer = try ModelContainer(for: schema, configurations: [config])
+            self.modelContainer = try makeContainer()
         } catch {
-            fatalError("Failed to create ModelContainer: \(error.localizedDescription)")
+            // Schema migration failed (e.g. new non-optional columns added).
+            // Destroy the legacy store and start fresh — acceptable for a dev build.
+            let sidecarExtensions = ["", "-shm", "-wal"]
+            for ext in sidecarExtensions {
+                let candidate = storeURL.deletingPathExtension()
+                    .appendingPathExtension("store\(ext)")
+                try? FileManager.default.removeItem(at: candidate)
+            }
+            // Also try the exact storeURL just in case.
+            try? FileManager.default.removeItem(at: storeURL)
+
+            do {
+                self.modelContainer = try makeContainer()
+            } catch {
+                fatalError("ModelContainer failed even after store reset: \(error.localizedDescription)")
+            }
         }
 
         let context = modelContainer.mainContext

@@ -21,8 +21,8 @@ final class TaskItem {
     var taskDescription: String
     var isCompleted: Bool
     var priorityRaw: Int
-    var workspaceRaw: String
-    var categoryRaw: String
+    var workspaceRaw: String?   // optional for SwiftData lightweight migration
+    var categoryRaw: String?    // optional for SwiftData lightweight migration
     var dueDate: Date?
     var completedDate: Date?
     var dateCreated: Date
@@ -40,12 +40,12 @@ final class TaskItem {
     }
 
     var workspace: TaskWorkspace {
-        get { TaskWorkspace(rawValue: workspaceRaw) ?? .inbox }
+        get { workspaceRaw.flatMap { TaskWorkspace(rawValue: $0) } ?? .inbox }
         set { workspaceRaw = newValue.rawValue }
     }
 
     var category: TaskCategory {
-        get { TaskCategory(rawValue: categoryRaw) ?? .general }
+        get { categoryRaw.flatMap { TaskCategory(rawValue: $0) } ?? .general }
         set { categoryRaw = newValue.rawValue }
     }
 
@@ -65,8 +65,8 @@ final class TaskItem {
         self.taskDescription = description
         self.isCompleted     = isCompleted
         self.priorityRaw     = priority.rawValue
-        self.workspaceRaw    = workspace.rawValue
-        self.categoryRaw     = category.rawValue
+        self.workspaceRaw    = workspace.rawValue   // non-nil for newly created tasks
+        self.categoryRaw     = category.rawValue    // existing rows get nil → computed fallback
         self.dueDate         = dueDate
         self.completedDate   = nil
         self.dateCreated     = .now
