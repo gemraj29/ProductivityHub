@@ -6,27 +6,57 @@ on:
   pull_request:
     branches: [ main ]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  test:
-    name: Run Tests
-    runs-on: macos-13
-    
+  build-and-test:
+    name: Build & Test
+    runs-on: macos-15
+
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
-
-      - name: Install XcodeGen
-        run: brew install xcodegen
-
-      - name: Generate Project
-        run: xcodegen generate
+        uses: actions/checkout@v4
 
       - name: Select Xcode
-        run: sudo xcode-select -s /Applications/Xcode_14.3.1.app/Contents/Developer
+        run: sudo xcode-select -s /Applications/Xcode_16.2.app/Contents/Developer
+
+      - name: Show Xcode version
+        run: xcodebuild -version
+
+      - name: Cache DerivedData
+        uses: actions/cache@v4
+        with:
+          path: ~/Library/Developer/Xcode/DerivedData
+          key: ${{ runner.os }}-derived-data-${{ hashFiles('**/*.xcodeproj/project.pbxproj', '**/*.swift') }}
+          restore-keys: |
+            ${{ runner.os }}-derived-data-
+
+      - name: Build
+        run: |
+          xcodebuild build \
+            -project ProductivityHub.xcodeproj \
+            -scheme ProductivityHub \
+            -sdk iphonesimulator \
+            -destination "platform=iOS Simulator,OS=18.2,name=iPhone 16" \
+            CODE_SIGNING_ALLOWED=NO \
+            | xcpretty --color && exit ${PIPESTATUS[0]}
 
       - name: Run Tests
         run: |
-          xcodebuild -scheme ProductivityHub_Current \
-                     -sdk iphonesimulator \
-                     -destination "platform=iOS Simulator,name=iPhone 14" \
-                     test
+          xcodebuild test \
+            -project ProductivityHub.xcodeproj \
+            -scheme ProductivityHub \
+            -sdk iphonesimulator \
+            -destination "platform=iOS Simulator,OS=18.2,name=iPhone 16" \
+            CODE_SIGNING_ALLOWED=NO \
+            | xcpretty --color --report junit --output test-results.xml && exit ${PIPESTATUS[0]}
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results
+          path: test-results.xml
+          retention-days: 30
