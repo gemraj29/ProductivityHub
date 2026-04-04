@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Deep Sea Productivity - Focus Mode</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "surface": "#f7f9fc",
+            "inverse-primary": "#97cdf6",
+            "surface-bright": "#f7f9fc",
+            "on-secondary-fixed": "#101d26",
+            "on-error-container": "#93000a",
+            "tertiary-fixed": "#ffdbd2",
+            "tertiary": "#601200",
+            "tertiary-fixed-dim": "#ffb4a1",
+            "surface-container-highest": "#e0e3e6",
+            "on-tertiary-fixed-variant": "#862206",
+            "on-surface": "#191c1e",
+            "inverse-on-surface": "#eff1f4",
+            "secondary-fixed": "#d7e4f1",
+            "on-secondary-container": "#57646f",
+            "surface-dim": "#d8dadd",
+            "inverse-surface": "#2d3133",
+            "outline": "#71787f",
+            "surface-container-high": "#e6e8eb",
+            "on-tertiary": "#ffffff",
+            "secondary-fixed-dim": "#bbc8d5",
+            "on-primary-container": "#85bae3",
+            "surface-container": "#eceef1",
+            "secondary-container": "#d4e1ee",
+            "on-error": "#ffffff",
+            "on-secondary": "#ffffff",
+            "surface-container-lowest": "#ffffff",
+            "primary-fixed": "#c9e6ff",
+            "surface-tint": "#296388",
+            "primary-fixed-dim": "#97cdf6",
+            "outline-variant": "#c1c7cf",
+            "surface-container-low": "#f2f4f7",
+            "on-tertiary-container": "#ff9a7f",
+            "on-secondary-fixed-variant": "#3b4853",
+            "error": "#ba1a1a",
+            "primary": "#00334d",
+            "primary-container": "#004b6e",
+            "on-primary": "#ffffff",
+            "tertiary-container": "#852205",
+            "background": "#f7f9fc",
+            "on-surface-variant": "#41484e",
+            "on-primary-fixed": "#001e2f",
+            "surface-variant": "#e0e3e6",
+            "on-primary-fixed-variant": "#014b6e",
+            "secondary": "#53606b",
+            "on-tertiary-fixed": "#3c0800",
+            "on-background": "#191c1e",
+            "error-container": "#ffdad6"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          "fontFamily": {
+            "headline": ["Manrope"],
+            "body": ["Inter"],
+            "label": ["Inter"]
+          }
+        },
+      },
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+    .timer-ring {
+      stroke-dasharray: 1000;
+      stroke-dashoffset: 250;
+    }
+    .glass-effect {
+      background: rgba(255, 255, 255, 0.8);
+      backdrop-filter: blur(20px);
+    }
+    .deep-sea-gradient {
+      background: linear-gradient(135deg, #00334d 0%, #004b6e 100%);
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background font-body text-on-surface min-h-screen pb-32">
+<!-- TopAppBar -->
+<header class="bg-[#f7f9fc] dark:bg-[#191c1e] w-full pt-4 pb-2 sticky top-0 z-40">
+<div class="flex items-center justify-between px-8 w-full max-w-7xl mx-auto">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-full overflow-hidden bg-surface-container-highest">
+<img alt="User Profile Avatar" class="w-full h-full object-cover" data-alt="Close up portrait of a professional woman with soft lighting and neutral background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD5QM3TTwUowa8v8fJRUNn-HeNTmC9_DrKSKTylVPZ1zGYbFABBAl90UCN51LKQysDqndZF9J-h-m_RiSZtZqh-KaQ1WTi5SNUSUYdoiA09hoayzB65EuCOtGzviSY7lko0mhBDW8mxoHFb_-YQ1_mrhEWKhNcBbBvu0UGmFmHlHGmzKOJIi82MYUCqRKEm-oqhRxJozu3swDAMTm5rDfkw_Sgc47D2pFDvHUMtp-fmwAsPaKkSK502X3ETgcJcZ9F2-vadD7Xmfcs"/>
+</div>
+<h1 class="font-manrope font-semibold text-2xl tracking-tight text-[#004B6E] dark:text-[#c9e6ff]">Deep Sea Productivity</h1>
+</div>
+<button class="p-2 rounded-full hover:bg-[#e0e3e6]/50 transition-colors active:scale-95 duration-200">
+<span class="material-symbols-outlined text-on-surface-variant">search</span>
+</button>
+</div>
+</header>
+<main class="max-w-7xl mx-auto px-8 mt-8">
+<!-- Immersive Focus Timer Section -->
+<section class="flex flex-col items-center justify-center py-12 bg-surface-container-low rounded-[2rem] overflow-hidden relative">
+<!-- Abstract Wave Background Decoration -->
+<div class="absolute inset-0 opacity-10 pointer-events-none overflow-hidden">
+<svg class="w-full h-full scale-150" viewbox="0 0 1000 1000" xmlns="http://www.w3.org/2000/svg">
+<path d="M0,500 C150,400 350,600 500,500 C650,400 850,600 1000,500 L1000,1000 L0,1000 Z" fill="#004b6e"></path>
+</svg>
+</div>
+<div class="relative z-10 flex flex-col items-center">
+<!-- Circular Timer Container -->
+<div class="relative flex items-center justify-center w-72 h-72 md:w-96 md:h-96">
+<svg class="w-full h-full transform -rotate-90">
+<circle class="text-surface-container-highest" cx="50%" cy="50%" fill="transparent" r="48%" stroke="currentColor" stroke-width="8"></circle>
+<circle class="timer-ring transition-all duration-1000 ease-in-out" cx="50%" cy="50%" fill="transparent" r="48%" stroke="url(#timerGradient)" stroke-linecap="round" stroke-width="12"></circle>
+<defs>
+<lineargradient id="timerGradient" x1="0%" x2="100%" y1="0%" y2="100%">
+<stop offset="0%" stop-color="#00334d"></stop>
+<stop offset="100%" stop-color="#004b6e"></stop>
+</lineargradient>
+</defs>
+</svg>
+<div class="absolute flex flex-col items-center">
+<span class="font-headline text-7xl md:text-8xl font-bold tracking-tighter text-primary">25:00</span>
+<span class="font-label text-sm uppercase tracking-[0.2em] text-on-surface-variant font-semibold mt-2">Deep Focus</span>
+</div>
+</div>
+<!-- Controls -->
+<div class="mt-12 flex flex-col md:flex-row gap-6 items-center">
+<button class="group relative px-10 py-5 deep-sea-gradient rounded-full text-white font-headline font-bold text-lg shadow-[0_10px_30px_rgba(0,51,77,0.15)] transition-all hover:scale-105 active:scale-95">
+<span class="flex items-center gap-3">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+              Deep Dive
+            </span>
+</button>
+<button class="px-8 py-5 bg-surface-container-highest text-on-surface-variant font-headline font-semibold text-lg rounded-full transition-all hover:bg-surface-container-high active:scale-95">
+<span class="flex items-center gap-3">
+<span class="material-symbols-outlined">waves</span>
+              Resurface
+            </span>
+</button>
+</div>
+</div>
+</section>
+<!-- Configuration Bento Grid -->
+<section class="grid grid-cols-1 md:grid-cols-12 gap-6 mt-8">
+<!-- Duration Selector -->
+<div class="md:col-span-7 bg-surface-container-low p-8 rounded-[2rem]">
+<div class="flex items-center justify-between mb-8">
+<h3 class="font-headline headline-sm text-on-surface">Session Depth</h3>
+<span class="font-label label-sm text-primary bg-primary-fixed px-3 py-1 rounded-full font-semibold">MINUTES</span>
+</div>
+<div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+<button class="bg-surface-container-lowest p-6 rounded-2xl flex flex-col items-center gap-2 transition-all hover:ring-2 hover:ring-primary/20 ring-inset">
+<span class="font-headline text-2xl font-bold text-primary">15</span>
+<span class="text-xs text-on-surface-variant font-medium">Reef</span>
+</button>
+<button class="bg-primary text-white p-6 rounded-2xl flex flex-col items-center gap-2 shadow-lg scale-105">
+<span class="font-headline text-2xl font-bold">25</span>
+<span class="text-xs opacity-80 font-medium">Lagoon</span>
+</button>
+<button class="bg-surface-container-lowest p-6 rounded-2xl flex flex-col items-center gap-2 transition-all hover:ring-2 hover:ring-primary/20 ring-inset">
+<span class="font-headline text-2xl font-bold text-primary">45</span>
+<span class="text-xs text-on-surface-variant font-medium">Abyss</span>
+</button>
+<button class="bg-surface-container-lowest p-6 rounded-2xl flex flex-col items-center gap-2 transition-all hover:ring-2 hover:ring-primary/20 ring-inset">
+<span class="font-headline text-2xl font-bold text-primary">60</span>
+<span class="text-xs text-on-surface-variant font-medium">Trenches</span>
+</button>
+</div>
+</div>
+<!-- Soundscape Selector -->
+<div class="md:col-span-5 bg-surface-container-low p-8 rounded-[2rem]">
+<h3 class="font-headline headline-sm text-on-surface mb-6">Ocean Ambience</h3>
+<div class="space-y-4">
+<div class="flex items-center justify-between p-4 bg-surface-container-lowest rounded-xl group cursor-pointer">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-lg bg-secondary-container flex items-center justify-center text-on-secondary-container">
+<span class="material-symbols-outlined">water_drop</span>
+</div>
+<div>
+<p class="font-headline font-semibold text-on-surface">Gentle Currents</p>
+<p class="text-xs text-on-surface-variant">Soft rhythmic flows</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<div class="flex items-center justify-between p-4 hover:bg-surface-container-highest/50 rounded-xl transition-colors cursor-pointer">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-lg bg-surface-container-highest flex items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined">sound_detection_loud_sound</span>
+</div>
+<div>
+<p class="font-headline font-semibold text-on-surface">Whale Songs</p>
+<p class="text-xs text-on-surface-variant">Distant haunting melodies</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-outline-variant">play_circle</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Stats & Quick Tips Row -->
+<section class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+<div class="bg-surface-container-lowest p-6 rounded-[1.5rem] flex items-center gap-6">
+<div class="w-16 h-16 rounded-full bg-tertiary-container/10 flex items-center justify-center">
+<span class="material-symbols-outlined text-tertiary" style="font-variation-settings: 'FILL' 1;">workspace_premium</span>
+</div>
+<div>
+<h4 class="font-headline font-bold text-on-surface">Current Streak</h4>
+<p class="text-sm text-on-surface-variant">You've reached focus depth 4 days in a row.</p>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-6 rounded-[1.5rem] flex items-center gap-6">
+<div class="w-16 h-16 rounded-full bg-primary-fixed flex items-center justify-center">
+<span class="material-symbols-outlined text-on-primary-fixed-variant">lightbulb</span>
+</div>
+<div>
+<h4 class="font-headline font-bold text-on-surface">Pro Tip</h4>
+<p class="text-sm text-on-surface-variant">Mute notifications to avoid surfacing too early.</p>
+</div>
+</div>
+</section>
+</main>
+<!-- FAB - Specific to Focus Context -->
+<button class="fixed bottom-28 right-8 z-50 w-16 h-16 rounded-2xl deep-sea-gradient text-white shadow-[0_10px_30px_rgba(0,51,77,0.2)] flex items-center justify-center transition-transform hover:scale-110 active:scale-90">
+<span class="material-symbols-outlined text-3xl">add</span>
+</button>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-around items-center px-6 pb-8 pt-4 bg-[#ffffff]/80 dark:bg-[#191c1e]/80 backdrop-blur-xl rounded-t-[2rem] z-50 shadow-[0_-10px_30px_rgba(0,51,77,0.08)]">
+<a class="flex flex-col items-center justify-center text-[#41484e] dark:text-[#c1c7cf] p-3 hover:opacity-80 transition-opacity spring-physics-active:scale-90" href="#">
+<span class="material-symbols-outlined">home</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#41484e] dark:text-[#c1c7cf] p-3 hover:opacity-80 transition-opacity spring-physics-active:scale-90" href="#">
+<span class="material-symbols-outlined">list_alt</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-gradient-to-br from-[#00334d] to-[#004b6e] text-white rounded-2xl p-3 shadow-lg hover:opacity-80 transition-opacity spring-physics-active:scale-90" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">timer</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#41484e] dark:text-[#c1c7cf] p-3 hover:opacity-80 transition-opacity spring-physics-active:scale-90" href="#">
+<span class="material-symbols-outlined">calendar_today</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#41484e] dark:text-[#c1c7cf] p-3 hover:opacity-80 transition-opacity spring-physics-active:scale-90" href="#">
+<span class="material-symbols-outlined">insights</span>
+</a>
+</nav>
+</body></html>

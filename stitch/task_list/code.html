@@ -5,9 +5,8 @@
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>Deep Sea Productivity - Task List</title>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@600;700&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
 <script id="tailwind-config">
         tailwind.config = {
             darkMode: "class",
@@ -86,13 +85,11 @@
             font-family: 'Inter', sans-serif;
             color: #191c1e;
         }
+        body {
+            min-height: max(884px, 100dvh);
+        }
     </style>
-<style>
-    body {
-      min-height: max(884px, 100dvh);
-    }
-  </style>
-  </head>
+</head>
 <body class="bg-background min-h-screen pb-32">
 <!-- TopAppBar -->
 <header class="bg-[#f7f9fc] dark:bg-[#191c1e] w-full pt-4 pb-2 no-border-tonal-shift-bg-[#f2f4f7] dark:bg-[#2a2f32]">
@@ -274,17 +271,17 @@
 <a class="flex flex-col items-center justify-center bg-gradient-to-br from-[#00334d] to-[#004b6e] text-white rounded-2xl p-3 shadow-lg hover:opacity-80 transition-opacity" href="#">
 <span class="material-symbols-outlined" data-icon="list_alt">list_alt</span>
 </a>
-<button class="flex flex-col items-center justify-center text-[#41484e] dark:text-[#c1c7cf] p-3 hover:opacity-80 transition-opacity">
-<span class="material-symbols-outlined text-4xl" data-icon="add_circle">add_circle</span>
-</button>
+<a class="flex flex-col items-center justify-center text-[#41484e] dark:text-[#c1c7cf] p-3 hover:opacity-80 transition-opacity" href="#">
+<span class="material-symbols-outlined" data-icon="timer">timer</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#41484e] dark:text-[#c1c7cf] p-3 hover:opacity-80 transition-opacity" href="#">
+<span class="material-symbols-outlined" data-icon="calendar_today">calendar_today</span>
+</a>
 <a class="flex flex-col items-center justify-center text-[#41484e] dark:text-[#c1c7cf] p-3 hover:opacity-80 transition-opacity" href="#">
 <span class="material-symbols-outlined" data-icon="insights">insights</span>
 </a>
-<a class="flex flex-col items-center justify-center text-[#41484e] dark:text-[#c1c7cf] p-3 hover:opacity-80 transition-opacity" href="#">
-<span class="material-symbols-outlined" data-icon="settings">settings</span>
-</a>
 </nav>
-<!-- Floating Action Button (Optional contextual) -->
+<!-- Floating Action Button -->
 <button class="fixed bottom-32 right-8 bg-gradient-to-br from-[#00334d] to-[#004b6e] text-white w-14 h-14 rounded-2xl shadow-[0_10px_30px_rgba(0,51,77,0.2)] flex items-center justify-center active:scale-90 transition-transform md:hidden">
 <span class="material-symbols-outlined" data-icon="add">add</span>
 </button>

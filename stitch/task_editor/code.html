@@ -7,9 +7,9 @@
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
 <style>
         .material-symbols-outlined {
+            font-family: 'Material Symbols Outlined';
             font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
         }
         body {
@@ -83,12 +83,7 @@
             }
         }
     </script>
-<style>
-    body {
-      min-height: max(884px, 100dvh);
-    }
-  </style>
-  </head>
+</head>
 <body class="bg-background text-on-surface min-h-screen flex flex-col">
 <!-- TopAppBar -->
 <header class="bg-[#f7f9fc] dark:bg-[#191c1e] w-full pt-4 pb-2">
@@ -106,7 +101,7 @@
 </div>
 </div>
 </header>
-<main class="flex-grow w-full max-w-4xl mx-auto px-8 py-12">
+<main class="flex-grow w-full max-w-4xl mx-auto px-8 py-12 mb-24">
 <div class="space-y-10">
 <!-- Hero Image / Visual Anchor -->
 <div class="relative h-48 w-full rounded-[2rem] overflow-hidden shadow-sm">
@@ -211,16 +206,16 @@
 <span class="material-symbols-outlined">list_alt</span>
 </div>
 <div class="flex flex-col items-center justify-center text-[#41484e] dark:text-[#c1c7cf] p-3 hover:opacity-80 transition-opacity">
-<span class="material-symbols-outlined">add_circle</span>
+<span class="material-symbols-outlined">timer</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#41484e] dark:text-[#c1c7cf] p-3 hover:opacity-80 transition-opacity">
+<span class="material-symbols-outlined">calendar_today</span>
 </div>
 <div class="flex flex-col items-center justify-center text-[#41484e] dark:text-[#c1c7cf] p-3 hover:opacity-80 transition-opacity">
 <span class="material-symbols-outlined">insights</span>
 </div>
-<div class="flex flex-col items-center justify-center text-[#41484e] dark:text-[#c1c7cf] p-3 hover:opacity-80 transition-opacity">
-<span class="material-symbols-outlined">settings</span>
-</div>
 </nav>
-<footer class="mt-auto py-12 text-center text-outline/40 text-xs">
+<footer class="mt-auto py-12 text-center text-outline/40 text-xs mb-20 md:mb-0">
 <p>© 2024 Deep Sea Productivity. Flow state enabled.</p>
 </footer>
 </body></html>
