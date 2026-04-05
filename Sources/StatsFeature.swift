@@ -1,6 +1,7 @@
 // StatsFeature.swift
 // Principal Engineer: Rajesh Vallepalli
-// Performance Analytics: task stats, completion trends, efficiency pulse, daily insight.
+// Performance Analytics: stat cards, bar chart, efficiency pulse, daily insight.
+// Design: matches Stitch productivity_stats/code.html exactly.
 
 import SwiftUI
 import Charts
@@ -8,7 +9,7 @@ import Charts
 // MARK: - Day Completion Model
 
 struct DayCompletion: Identifiable {
-    let id   = UUID()
+    let id    = UUID()
     let label: String
     let count: Int
     let isToday: Bool
@@ -18,12 +19,12 @@ struct DayCompletion: Identifiable {
 
 @MainActor
 final class StatsViewModel: ObservableObject {
-    @Published private(set) var totalCompleted:  Int              = 0
-    @Published private(set) var avgDailyTasks:   Double           = 0
-    @Published private(set) var longestStreak:   Int              = 0
-    @Published private(set) var weeklyData:      [DayCompletion]  = []
-    @Published private(set) var selectedPeriod:  StatsPeriod      = .week
-    @Published private(set) var state: LoadingState<Bool>         = .idle
+    @Published private(set) var totalCompleted: Int             = 0
+    @Published private(set) var avgDailyTasks:  Double          = 0
+    @Published private(set) var longestStreak:  Int             = 0
+    @Published private(set) var weeklyData:     [DayCompletion] = []
+    @Published var selectedPeriod:  StatsPeriod = .week
+    @Published private(set) var state: LoadingState<Bool>       = .idle
 
     enum StatsPeriod: String, CaseIterable {
         case week  = "Week"
@@ -66,7 +67,7 @@ final class StatsViewModel: ObservableObject {
         }
     }
 
-    // MARK: - Private
+    // MARK: Private Helpers
 
     private func computeStreak(from tasks: [TaskItem]) -> Int {
         let calendar = Calendar.current
@@ -77,7 +78,6 @@ final class StatsViewModel: ObservableObject {
 
         var streak   = 0
         var expected = calendar.startOfDay(for: .now)
-
         for day in uniqueDays {
             if day == expected {
                 streak  += 1
@@ -90,9 +90,9 @@ final class StatsViewModel: ObservableObject {
     }
 
     private func computeWeeklyData(from completed: [TaskItem]) -> [DayCompletion] {
-        let calendar       = Calendar.current
-        let today          = calendar.startOfDay(for: .now)
-        let weekdayLabels  = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"]
+        let calendar      = Calendar.current
+        let today         = calendar.startOfDay(for: .now)
+        let weekdayLabels = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"]
 
         return (0..<7).reversed().compactMap { daysAgo -> DayCompletion? in
             guard let day = calendar.date(byAdding: .day, value: -daysAgo, to: today) else { return nil }
@@ -100,16 +100,12 @@ final class StatsViewModel: ObservableObject {
                 task.completedDate.map { calendar.isDate($0, inSameDayAs: day) } == true
             }.count
             let weekday = calendar.component(.weekday, from: day)
-            return DayCompletion(
-                label:   weekdayLabels[weekday - 1],
-                count:   count,
-                isToday: daysAgo == 0
-            )
+            return DayCompletion(label: weekdayLabels[weekday - 1], count: count, isToday: daysAgo == 0)
         }
     }
 }
 
-// MARK: - Stats View
+// MARK: - Stats View (Stitch layout)
 
 struct StatsView: View {
     @ObservedObject var viewModel: StatsViewModel
@@ -121,38 +117,19 @@ struct StatsView: View {
 
                 ScrollView(showsIndicators: false) {
                     VStack(alignment: .leading, spacing: DesignTokens.Spacing.xl) {
-
-                        // Section label
-                        Text("Performance Analytics")
-                            .sectionLabel()
-                            .padding(.top, DesignTokens.Spacing.sm)
-
-                        // Page title
-                        Text("Productivity Stats")
-                            .font(.system(size: 26, weight: .bold))
-                            .foregroundStyle(DesignTokens.Colors.textPrimary)
-                            .padding(.top, -DesignTokens.Spacing.md)
-
-                        // Top stats grid
+                        pageHeader.padding(.top, DesignTokens.Spacing.sm)
                         statsGrid
-
-                        // Completion trends chart
                         trendsCard
-
-                        // Efficiency Pulse
-                        efficiencyCard
-
-                        // Daily Insight
-                        insightCard
+                        bottomRow
                     }
                     .padding(.horizontal, DesignTokens.Spacing.lg)
-                    .padding(.bottom, DesignTokens.Spacing.xxxl)
+                    .padding(.bottom, 100)
                 }
             }
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .principal) {
-                    DSAppHeader(title: "Productivity", showSearch: false)
+                    DSAppHeader(title: "Deep Sea Productivity", showSearch: false)
                         .frame(maxWidth: .infinity)
                 }
             }
@@ -161,13 +138,32 @@ struct StatsView: View {
         .refreshable { await viewModel.load() }
     }
 
-    // MARK: - Stats Grid
+    // MARK: Page Header
+
+    private var pageHeader: some View {
+        VStack(alignment: .leading, spacing: DesignTokens.Spacing.sm) {
+            Text("PERFORMANCE ANALYTICS")
+                .sectionLabel()
+
+            Text("Productivity Stats")
+                .font(.headline(30))
+                .foregroundStyle(DesignTokens.Colors.textPrimary)
+
+            // Accent underline (Stitch: w-20 h-1 gradient)
+            LinearGradient.deepSeaPrimary
+                .frame(width: 64, height: 3)
+                .clipShape(Capsule())
+        }
+    }
+
+    // MARK: Stats Grid (Stitch 3-card bento)
 
     private var statsGrid: some View {
         VStack(spacing: DesignTokens.Spacing.md) {
+            // Total Tasks Completed (full-width)
             DSStatCard(
                 icon: "checkmark.circle.fill",
-                iconColor: DesignTokens.Colors.success,
+                iconColor: DesignTokens.Colors.primary,
                 value: "\(viewModel.totalCompleted)",
                 label: "Total Tasks Completed",
                 badge: viewModel.totalCompleted > 0 ? "+12%" : nil
@@ -176,14 +172,14 @@ struct StatsView: View {
             HStack(spacing: DesignTokens.Spacing.md) {
                 DSStatCard(
                     icon: "chart.line.uptrend.xyaxis",
-                    iconColor: DesignTokens.Colors.accent,
+                    iconColor: DesignTokens.Colors.primary,
                     value: String(format: "%.1f", viewModel.avgDailyTasks),
                     label: "Avg. Daily\nProductivity"
                 )
 
                 DSStatCard(
                     icon: "flame.fill",
-                    iconColor: DesignTokens.Colors.warning,
+                    iconColor: DesignTokens.Colors.tertiaryContainer,
                     value: "\(viewModel.longestStreak)",
                     label: "Longest\nStreak (days)"
                 )
@@ -191,58 +187,59 @@ struct StatsView: View {
         }
     }
 
-    // MARK: - Trends Card
+    // MARK: Trends Card (Stitch bar chart)
 
     private var trendsCard: some View {
-        DSCard {
-            VStack(alignment: .leading, spacing: DesignTokens.Spacing.md) {
-                HStack {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Task Completion Trends")
-                            .font(.subheadline.weight(.semibold))
-                            .foregroundStyle(DesignTokens.Colors.textPrimary)
-                        Text("Weekly performance overview")
-                            .font(.caption)
-                            .foregroundStyle(DesignTokens.Colors.textSecondary)
-                    }
-                    Spacer()
-                    periodPicker
+        VStack(alignment: .leading, spacing: DesignTokens.Spacing.lg) {
+            HStack(alignment: .top) {
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("Task Completion Trends")
+                        .font(.headline(17))
+                        .foregroundStyle(DesignTokens.Colors.textPrimary)
+                    Text("Weekly performance overview")
+                        .font(.body(13))
+                        .foregroundStyle(DesignTokens.Colors.textSecondary)
                 }
-
-                completionChart
-                    .frame(height: 140)
+                Spacer()
+                periodPicker
             }
-            .padding(DesignTokens.Spacing.lg)
+
+            completionChart
+                .frame(height: 160)
         }
+        .padding(DesignTokens.Spacing.xl)
+        .background(DesignTokens.Colors.surfaceLow, in: RoundedRectangle(cornerRadius: DesignTokens.Radius.xxl))
     }
 
     private var periodPicker: some View {
         HStack(spacing: 0) {
             ForEach(StatsViewModel.StatsPeriod.allCases, id: \.self) { period in
-                Button {
-                    viewModel.selectPeriod(period)
-                } label: {
+                Button { viewModel.selectPeriod(period) } label: {
                     Text(period.rawValue)
-                        .font(.caption.weight(.semibold))
+                        .font(.label(12, weight: .semibold))
                         .foregroundStyle(
                             viewModel.selectedPeriod == period
-                                ? DesignTokens.Colors.textInverse
+                                ? DesignTokens.Colors.primary
                                 : DesignTokens.Colors.textSecondary
                         )
                         .padding(.horizontal, DesignTokens.Spacing.md)
                         .padding(.vertical, DesignTokens.Spacing.xs)
                         .background(
                             viewModel.selectedPeriod == period
-                                ? DesignTokens.Colors.accent
+                                ? DesignTokens.Colors.backgroundCard
                                 : Color.clear,
-                            in: Capsule()
+                            in: RoundedRectangle(cornerRadius: DesignTokens.Radius.md)
+                        )
+                        .shadow(
+                            color: viewModel.selectedPeriod == period ? Color.black.opacity(0.06) : .clear,
+                            radius: 4, x: 0, y: 2
                         )
                 }
                 .buttonStyle(.plain)
             }
         }
         .padding(3)
-        .background(DesignTokens.Colors.backgroundApp, in: Capsule())
+        .background(DesignTokens.Colors.surfaceHighest, in: RoundedRectangle(cornerRadius: DesignTokens.Radius.lg))
     }
 
     private var completionChart: some View {
@@ -253,22 +250,22 @@ struct StatsView: View {
             )
             .foregroundStyle(
                 day.isToday
-                    ? DesignTokens.Colors.accent
-                    : DesignTokens.Colors.accent.opacity(0.35)
+                    ? AnyShapeStyle(LinearGradient.deepSeaPrimary)
+                    : AnyShapeStyle(DesignTokens.Colors.secondaryContainer)
             )
-            .cornerRadius(4)
+            .cornerRadius(6)
         }
         .chartYAxis {
-            AxisMarks(position: .leading, values: .automatic(desiredCount: 4)) { value in
+            AxisMarks(position: .leading, values: .automatic(desiredCount: 4)) { _ in
                 AxisGridLine(stroke: StrokeStyle(lineWidth: 0.5))
-                    .foregroundStyle(DesignTokens.Colors.textTertiary.opacity(0.4))
+                    .foregroundStyle(DesignTokens.Colors.outlineVariant.opacity(0.3))
                 AxisValueLabel()
                     .font(.system(size: 10))
-                    .foregroundStyle(DesignTokens.Colors.textTertiary)
+                    .foregroundStyle(DesignTokens.Colors.textSecondary)
             }
         }
         .chartXAxis {
-            AxisMarks { value in
+            AxisMarks { _ in
                 AxisValueLabel()
                     .font(.system(size: 11, weight: .medium))
                     .foregroundStyle(DesignTokens.Colors.textSecondary)
@@ -276,93 +273,138 @@ struct StatsView: View {
         }
     }
 
-    // MARK: - Efficiency Card
+    // MARK: Bottom Row: Efficiency Pulse + Daily Insight
 
-    private var efficiencyCard: some View {
-        DSCard {
-            VStack(alignment: .leading, spacing: DesignTokens.Spacing.md) {
-                Text("Efficiency Pulse")
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(DesignTokens.Colors.textPrimary)
-
-                EfficiencyRow(
-                    icon: "bolt.fill",
-                    iconColor: DesignTokens.Colors.accent,
-                    label: "Deep Focus Ratio",
-                    value: 78
-                )
-
-                Divider()
-
-                EfficiencyRow(
-                    icon: "target",
-                    iconColor: DesignTokens.Colors.destructive,
-                    label: "Time Estimation Accuracy",
-                    value: 92
-                )
-            }
-            .padding(DesignTokens.Spacing.lg)
+    private var bottomRow: some View {
+        VStack(spacing: DesignTokens.Spacing.md) {
+            efficiencyCard
+            insightCard
         }
     }
 
-    // MARK: - Insight Card
+    private var efficiencyCard: some View {
+        VStack(alignment: .leading, spacing: DesignTokens.Spacing.lg) {
+            Text("Efficiency Pulse")
+                .font(.headline(17))
+                .foregroundStyle(DesignTokens.Colors.textPrimary)
+
+            EfficiencyBar(
+                icon: "bolt.fill",
+                iconBg: DesignTokens.Colors.primaryFixed,
+                iconColor: DesignTokens.Colors.onPrimaryFixedVariant,
+                label: "Deep Focus Ratio",
+                value: 78,
+                trackColor: DesignTokens.Colors.primary
+            )
+
+            Divider()
+                .opacity(0.5)
+
+            EfficiencyBar(
+                icon: "timer",
+                iconBg: DesignTokens.Colors.tertiaryFixed,
+                iconColor: DesignTokens.Colors.tertiaryContainer,
+                label: "Time Estimation Accuracy",
+                value: 92,
+                trackColor: DesignTokens.Colors.tertiary
+            )
+        }
+        .padding(DesignTokens.Spacing.xl)
+        .background(DesignTokens.Colors.backgroundCard, in: RoundedRectangle(cornerRadius: DesignTokens.Radius.xxl))
+        .shadow(color: Color(hex: "#00334d").opacity(0.04), radius: 12, x: 0, y: 4)
+    }
 
     private var insightCard: some View {
-        RoundedRectangle(cornerRadius: DesignTokens.Radius.lg)
-            .fill(DesignTokens.Colors.backgroundNavy)
-            .overlay(
-                VStack(alignment: .leading, spacing: DesignTokens.Spacing.md) {
-                    Text("Daily Insight")
-                        .font(.caption.weight(.semibold))
-                        .foregroundStyle(DesignTokens.Colors.textTertiary)
+        ZStack(alignment: .bottomTrailing) {
+            // Decorative glow
+            Circle()
+                .fill(DesignTokens.Colors.primaryContainer.opacity(0.25))
+                .frame(width: 160, height: 160)
+                .blur(radius: 30)
+                .offset(x: 20, y: 20)
 
-                    Text("\"Your peak productivity window occurs between 9:00 AM and 11:30 AM. Scheduling your high-impact tasks during this window has increased completion rates by 24% this week.\"")
-                        .font(.subheadline)
-                        .foregroundStyle(DesignTokens.Colors.textInverse)
-                        .fixedSize(horizontal: false, vertical: true)
+            VStack(alignment: .leading, spacing: DesignTokens.Spacing.md) {
+                Text("Daily Insight")
+                    .font(.headline(17))
+                    .foregroundStyle(Color.white)
 
-                    Button {
-                        // Optimize schedule action
-                    } label: {
-                        Text("Optimize Schedule")
-                            .font(.subheadline.weight(.semibold))
-                            .foregroundStyle(DesignTokens.Colors.textPrimary)
-                            .padding(.horizontal, DesignTokens.Spacing.lg)
-                            .padding(.vertical, DesignTokens.Spacing.sm)
-                            .background(DesignTokens.Colors.backgroundCard, in: Capsule())
-                    }
-                    .accessibilityLabel("Optimize your schedule")
+                Text("\"Your peak productivity window occurs between **9:00 AM and 11:30 AM**. Scheduling your high-impact tasks during this window has increased completion rates by 24% this week.\"")
+                    .font(.body(14))
+                    .foregroundStyle(DesignTokens.Colors.onPrimaryContainer)
+                    .lineSpacing(3)
+                    .fixedSize(horizontal: false, vertical: true)
+
+                Button {
+                    // Optimize schedule action
+                } label: {
+                    Text("Optimize Schedule")
+                        .font(.body(14, weight: .semibold))
+                        .foregroundStyle(DesignTokens.Colors.textPrimary)
+                        .padding(.horizontal, DesignTokens.Spacing.lg)
+                        .padding(.vertical, DesignTokens.Spacing.sm)
+                        .background(Color.white.opacity(0.12), in: Capsule())
+                        .overlay(Capsule().strokeBorder(Color.white.opacity(0.1), lineWidth: 1))
                 }
-                .padding(DesignTokens.Spacing.lg)
-            )
-            .accessibilityElement(children: .combine)
+                .accessibilityLabel("Optimize your schedule")
+            }
+            .padding(DesignTokens.Spacing.xl)
+        }
+        .background(
+            LinearGradient.deepSeaPrimary,
+            in: RoundedRectangle(cornerRadius: DesignTokens.Radius.xxl)
+        )
+        .clipped()
+        .accessibilityElement(children: .combine)
     }
 }
 
-// MARK: - Efficiency Row
+// MARK: - Efficiency Bar (Stitch progress row)
 
-private struct EfficiencyRow: View {
-    let icon: String
-    let iconColor: Color
-    let label: String
-    let value: Int
+private struct EfficiencyBar: View {
+    let icon:       String
+    let iconBg:     Color
+    let iconColor:  Color
+    let label:      String
+    let value:      Int
+    let trackColor: Color
 
     var body: some View {
         HStack(spacing: DesignTokens.Spacing.md) {
-            Image(systemName: icon)
-                .font(.system(size: 16, weight: .semibold))
-                .foregroundStyle(iconColor)
-                .frame(width: 24)
+            ZStack {
+                Circle().fill(iconBg).frame(width: 44, height: 44)
+                Image(systemName: icon)
+                    .font(.system(size: 18, weight: .semibold))
+                    .foregroundStyle(iconColor)
+            }
 
-            Text(label)
-                .font(.subheadline)
-                .foregroundStyle(DesignTokens.Colors.textPrimary)
+            VStack(alignment: .leading, spacing: DesignTokens.Spacing.xs) {
+                HStack {
+                    Text(label)
+                        .font(.body(14, weight: .semibold))
+                        .foregroundStyle(DesignTokens.Colors.textPrimary)
+                    Spacer()
+                    Text("\(value)%")
+                        .font(.body(14, weight: .bold))
+                        .foregroundStyle(DesignTokens.Colors.textPrimary)
+                }
 
-            Spacer()
-
-            Text("\(value)%")
-                .font(.subheadline.weight(.bold))
-                .foregroundStyle(DesignTokens.Colors.textPrimary)
+                // Progress track
+                GeometryReader { geo in
+                    ZStack(alignment: .leading) {
+                        Capsule()
+                            .fill(DesignTokens.Colors.surfaceHighest)
+                            .frame(height: 6)
+                        LinearGradient(
+                            colors: [trackColor, trackColor.opacity(0.7)],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                        .frame(width: geo.size.width * CGFloat(value) / 100, height: 6)
+                        .clipShape(Capsule())
+                    }
+                }
+                .frame(height: 6)
+            }
         }
         .accessibilityElement(children: .combine)
         .accessibilityLabel("\(label): \(value) percent")

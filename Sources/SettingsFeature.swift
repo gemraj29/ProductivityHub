@@ -1,15 +1,16 @@
 // SettingsFeature.swift
 // Principal Engineer: Rajesh Vallepalli
-// App settings: preferences, about, and workspace configuration.
+// App settings: profile, preferences, workspaces, and about.
+// Design: Stitch design tokens applied throughout.
 
 import SwiftUI
 
 // MARK: - Settings View
 
 struct SettingsView: View {
-    @AppStorage("userName") private var userName: String = "Alexander"
-    @AppStorage("focusModeEnabled") private var focusModeEnabled: Bool = false
-    @AppStorage("notificationsEnabled") private var notificationsEnabled: Bool = true
+    @AppStorage("userName")              private var userName:              String = "Alexander"
+    @AppStorage("focusModeEnabled")      private var focusModeEnabled:      Bool   = false
+    @AppStorage("notificationsEnabled")  private var notificationsEnabled:  Bool   = true
     @State private var showingNameEditor = false
 
     var body: some View {
@@ -19,20 +20,17 @@ struct SettingsView: View {
 
                 ScrollView(showsIndicators: false) {
                     VStack(spacing: DesignTokens.Spacing.lg) {
-
-                        // Profile Card
                         profileCard
                             .padding(.top, DesignTokens.Spacing.sm)
 
-                        // Preferences
-                        settingsSection(title: "Preferences") {
+                        settingsSection(title: "PREFERENCES") {
                             SettingsToggleRow(
                                 icon: "moon.fill",
-                                iconColor: DesignTokens.Colors.accent,
+                                iconColor: DesignTokens.Colors.primary,
                                 label: "Focus Mode",
                                 value: $focusModeEnabled
                             )
-                            Divider().padding(.leading, 48)
+                            Divider().padding(.leading, 56)
                             SettingsToggleRow(
                                 icon: "bell.fill",
                                 iconColor: DesignTokens.Colors.warning,
@@ -41,10 +39,9 @@ struct SettingsView: View {
                             )
                         }
 
-                        // Workspaces
-                        settingsSection(title: "Workspaces") {
+                        settingsSection(title: "WORKSPACES") {
                             ForEach(Array(TaskWorkspace.allCases.enumerated()), id: \.element) { index, workspace in
-                                if index > 0 { Divider().padding(.leading, 48) }
+                                if index > 0 { Divider().padding(.leading, 56) }
                                 SettingsLinkRow(
                                     icon: workspace.icon,
                                     iconColor: DesignTokens.Colors.workspaceColor(workspace),
@@ -54,21 +51,20 @@ struct SettingsView: View {
                             }
                         }
 
-                        // About
-                        settingsSection(title: "About") {
+                        settingsSection(title: "ABOUT") {
                             SettingsInfoRow(label: "Version", value: "1.0.0")
-                            Divider().padding(.leading, 48)
+                            Divider().padding(.leading, 56)
                             SettingsInfoRow(label: "Build", value: "Deep Sea Productivity")
                         }
                     }
                     .padding(.horizontal, DesignTokens.Spacing.lg)
-                    .padding(.bottom, DesignTokens.Spacing.xxxl)
+                    .padding(.bottom, 100)
                 }
             }
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .principal) {
-                    DSAppHeader(title: "Productivity")
+                    DSAppHeader(title: "Deep Sea Productivity")
                         .frame(maxWidth: .infinity)
                 }
             }
@@ -78,55 +74,47 @@ struct SettingsView: View {
         }
     }
 
-    // MARK: - Profile Card
+    // MARK: Profile Card
 
     private var profileCard: some View {
-        DSCard {
-            HStack(spacing: DesignTokens.Spacing.lg) {
-                Circle()
-                    .fill(
-                        LinearGradient(
-                            colors: [DesignTokens.Colors.accent, DesignTokens.Colors.backgroundNavy],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-                    .frame(width: 56, height: 56)
-                    .overlay(
-                        Text(String(userName.prefix(1)).uppercased())
-                            .font(.system(size: 22, weight: .bold))
-                            .foregroundStyle(.white)
-                    )
+        HStack(spacing: DesignTokens.Spacing.lg) {
+            Circle()
+                .fill(LinearGradient.deepSeaPrimary)
+                .frame(width: 60, height: 60)
+                .overlay(
+                    Text(String(userName.prefix(1)).uppercased())
+                        .font(.system(size: 24, weight: .bold))
+                        .foregroundStyle(Color.white)
+                )
 
-                VStack(alignment: .leading, spacing: 3) {
-                    Text(userName)
-                        .font(.headline.weight(.bold))
-                        .foregroundStyle(DesignTokens.Colors.textPrimary)
-                    Text("Deep Sea Member")
-                        .font(.caption)
-                        .foregroundStyle(DesignTokens.Colors.textSecondary)
-                }
-
-                Spacer()
-
-                Button {
-                    showingNameEditor = true
-                } label: {
-                    Image(systemName: "pencil")
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundStyle(DesignTokens.Colors.accent)
-                        .frame(width: 32, height: 32)
-                        .background(DesignTokens.Colors.accentLight, in: Circle())
-                }
-                .accessibilityLabel("Edit name")
+            VStack(alignment: .leading, spacing: 3) {
+                Text(userName)
+                    .font(.headline(17))
+                    .foregroundStyle(DesignTokens.Colors.textPrimary)
+                Text("Deep Sea Member")
+                    .font(.body(13))
+                    .foregroundStyle(DesignTokens.Colors.textSecondary)
             }
-            .padding(DesignTokens.Spacing.lg)
+
+            Spacer()
+
+            Button { showingNameEditor = true } label: {
+                Image(systemName: "pencil")
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundStyle(DesignTokens.Colors.primary)
+                    .frame(width: 34, height: 34)
+                    .background(DesignTokens.Colors.primaryFixed, in: Circle())
+            }
+            .accessibilityLabel("Edit name")
         }
+        .padding(DesignTokens.Spacing.lg)
+        .background(DesignTokens.Colors.backgroundCard, in: RoundedRectangle(cornerRadius: DesignTokens.Radius.xxl))
+        .shadow(color: Color(hex: "#00334d").opacity(0.06), radius: 12, x: 0, y: 4)
         .accessibilityElement(children: .combine)
         .accessibilityLabel("Profile: \(userName)")
     }
 
-    // MARK: - Section Builder
+    // MARK: Section Builder
 
     private func settingsSection<Content: View>(
         title: String,
@@ -137,16 +125,15 @@ struct SettingsView: View {
                 .sectionLabel()
                 .padding(.leading, DesignTokens.Spacing.xs)
 
-            DSCard {
-                VStack(spacing: 0) {
-                    content()
-                }
-                .padding(.vertical, DesignTokens.Spacing.xs)
+            VStack(spacing: 0) {
+                content()
             }
+            .background(DesignTokens.Colors.backgroundCard, in: RoundedRectangle(cornerRadius: DesignTokens.Radius.xxl))
+            .shadow(color: Color(hex: "#00334d").opacity(0.04), radius: 8, x: 0, y: 2)
         }
     }
 
-    // MARK: - Name Editor Sheet
+    // MARK: Name Editor Sheet
 
     private var nameEditorSheet: some View {
         NavigationStack {
@@ -161,6 +148,7 @@ struct SettingsView: View {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Done") { showingNameEditor = false }
                         .fontWeight(.semibold)
+                        .foregroundStyle(DesignTokens.Colors.primary)
                 }
             }
         }
@@ -170,9 +158,9 @@ struct SettingsView: View {
 // MARK: - Settings Row Components
 
 private struct SettingsToggleRow: View {
-    let icon: String
+    let icon:      String
     let iconColor: Color
-    let label: String
+    let label:     String
     @Binding var value: Bool
 
     var body: some View {
@@ -180,18 +168,18 @@ private struct SettingsToggleRow: View {
             Image(systemName: icon)
                 .font(.system(size: 14, weight: .semibold))
                 .foregroundStyle(iconColor)
-                .frame(width: 28, height: 28)
-                .background(iconColor.opacity(0.12), in: RoundedRectangle(cornerRadius: 7))
+                .frame(width: 30, height: 30)
+                .background(iconColor.opacity(0.12), in: RoundedRectangle(cornerRadius: 8))
 
             Text(label)
-                .font(.subheadline)
+                .font(.body(15))
                 .foregroundStyle(DesignTokens.Colors.textPrimary)
 
             Spacer()
 
             Toggle("", isOn: $value)
                 .labelsHidden()
-                .tint(DesignTokens.Colors.accent)
+                .tint(DesignTokens.Colors.primary)
         }
         .padding(.horizontal, DesignTokens.Spacing.lg)
         .padding(.vertical, DesignTokens.Spacing.md)
@@ -199,33 +187,33 @@ private struct SettingsToggleRow: View {
 }
 
 private struct SettingsLinkRow: View {
-    let icon: String
+    let icon:      String
     let iconColor: Color
-    let label: String
-    var detail: String? = nil
+    let label:     String
+    var detail:    String? = nil
 
     var body: some View {
         HStack(spacing: DesignTokens.Spacing.md) {
             Image(systemName: icon)
                 .font(.system(size: 14, weight: .semibold))
                 .foregroundStyle(iconColor)
-                .frame(width: 28, height: 28)
-                .background(iconColor.opacity(0.12), in: RoundedRectangle(cornerRadius: 7))
+                .frame(width: 30, height: 30)
+                .background(iconColor.opacity(0.12), in: RoundedRectangle(cornerRadius: 8))
 
             Text(label)
-                .font(.subheadline)
+                .font(.body(15))
                 .foregroundStyle(DesignTokens.Colors.textPrimary)
 
             Spacer()
 
             if let detail {
                 Text(detail)
-                    .font(.caption)
-                    .foregroundStyle(DesignTokens.Colors.textTertiary)
+                    .font(.body(13))
+                    .foregroundStyle(DesignTokens.Colors.textSecondary)
             }
             Image(systemName: "chevron.right")
                 .font(.system(size: 12, weight: .semibold))
-                .foregroundStyle(DesignTokens.Colors.textTertiary)
+                .foregroundStyle(DesignTokens.Colors.outlineVariant)
         }
         .padding(.horizontal, DesignTokens.Spacing.lg)
         .padding(.vertical, DesignTokens.Spacing.md)
@@ -238,16 +226,16 @@ private struct SettingsInfoRow: View {
     let value: String
 
     var body: some View {
-        HStack(spacing: DesignTokens.Spacing.md) {
+        HStack {
             Text(label)
-                .font(.subheadline)
+                .font(.body(15))
                 .foregroundStyle(DesignTokens.Colors.textPrimary)
-                .padding(.leading, 48)
+                .padding(.leading, 46)
 
             Spacer()
 
             Text(value)
-                .font(.subheadline)
+                .font(.body(15))
                 .foregroundStyle(DesignTokens.Colors.textSecondary)
         }
         .padding(.horizontal, DesignTokens.Spacing.lg)

@@ -1,6 +1,7 @@
 // NoteFeature.swift
 // Principal Engineer: Rajesh Vallepalli
 // Notes list with search, pinning, and a rich editor.
+// Design: Stitch design tokens applied throughout.
 
 import SwiftUI
 

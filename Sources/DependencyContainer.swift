@@ -108,6 +108,10 @@ final class DependencyContainer: Sendable {
         )
     }
 
+    func makeFocusModeViewModel() -> FocusModeViewModel {
+        FocusModeViewModel()
+    }
+
     func makeStatsViewModel() -> StatsViewModel {
         StatsViewModel(taskRepository: taskRepository)
     }

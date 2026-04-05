@@ -29,81 +29,74 @@ struct ProductivityHubApp: App {
 struct RootCoordinatorView: View {
     let container: DependencyContainer
     @State private var selectedTab: AppTab = .home
-    @State private var showingAdd          = false
+    @State private var showingAdd = false
 
     @StateObject private var dashboardViewModel: DashboardViewModel
     @StateObject private var taskViewModel:      TaskListViewModel
-    @StateObject private var statsViewModel:     StatsViewModel
+    @StateObject private var focusViewModel:     FocusModeViewModel
     @StateObject private var calendarViewModel:  CalendarHubViewModel
+    @StateObject private var statsViewModel:     StatsViewModel
 
     init(container: DependencyContainer) {
         self.container = container
         _dashboardViewModel = StateObject(wrappedValue: container.makeDashboardViewModel())
         _taskViewModel      = StateObject(wrappedValue: container.makeTaskListViewModel())
-        _statsViewModel     = StateObject(wrappedValue: container.makeStatsViewModel())
+        _focusViewModel     = StateObject(wrappedValue: container.makeFocusModeViewModel())
         _calendarViewModel  = StateObject(wrappedValue: container.makeCalendarViewModel())
+        _statsViewModel     = StateObject(wrappedValue: container.makeStatsViewModel())
     }
 
     var body: some View {
-        TabView(selection: $selectedTab) {
-            DashboardView(viewModel: dashboardViewModel)
-                .tabItem { Label(AppTab.home.title,     systemImage: AppTab.home.icon)     }.tag(AppTab.home)
-            TaskListView(viewModel: taskViewModel)
-                .tabItem { Label(AppTab.tasks.title,    systemImage: AppTab.tasks.icon)    }.tag(AppTab.tasks)
-            StatsView(viewModel: statsViewModel)
-                .tabItem { Label(AppTab.stats.title,    systemImage: AppTab.stats.icon)    }.tag(AppTab.stats)
-            SettingsView()
-                .tabItem { Label(AppTab.settings.title, systemImage: AppTab.settings.icon) }.tag(AppTab.settings)
-        }
-        .toolbar(.hidden, for: .tabBar)
-        .safeAreaInset(edge: .bottom, spacing: 0) {
+        ZStack(alignment: .bottom) {
+            TabView(selection: $selectedTab) {
+                DashboardView(viewModel: dashboardViewModel)
+                    .tag(AppTab.home)
+                TaskListView(viewModel: taskViewModel)
+                    .tag(AppTab.tasks)
+                FocusModeView(viewModel: focusViewModel)
+                    .tag(AppTab.focus)
+                CalendarHubView(viewModel: calendarViewModel)
+                    .tag(AppTab.calendar)
+                StatsView(viewModel: statsViewModel)
+                    .tag(AppTab.stats)
+            }
+            .toolbar(.hidden, for: .tabBar)
+
             DeepSeaTabBar(selectedTab: $selectedTab, onAdd: { showingAdd = true })
         }
-        .tint(DesignTokens.Colors.accent)
+        .tint(DesignTokens.Colors.primary)
         .sheet(isPresented: $showingAdd) {
             TaskDetailSheet(viewModel: container.makeTaskDetailViewModel(task: nil))
         }
     }
 }
 
-// MARK: - Deep Sea Tab Bar
+// MARK: - Deep Sea Tab Bar (Stitch-style)
 
 private struct DeepSeaTabBar: View {
     @Binding var selectedTab: AppTab
     let onAdd: () -> Void
 
-    private let leftTabs:  [AppTab] = [.home,  .tasks   ]
-    private let rightTabs: [AppTab] = [.stats, .settings]
-
     var body: some View {
         HStack(spacing: 0) {
-            ForEach(leftTabs,  id: \.self) { DeepSeaTabItem(tab: $0, selectedTab: $selectedTab) }
-
-            Button(action: onAdd) {
-                ZStack {
-                    Circle()
-                        .fill(DesignTokens.Colors.accent)
-                        .frame(width: 52, height: 52)
-                        .shadow(color: DesignTokens.Colors.accent.opacity(0.45), radius: 10, x: 0, y: 5)
-                    Image(systemName: "plus")
-                        .font(.system(size: 22, weight: .semibold))
-                        .foregroundStyle(.white)
-                }
+            ForEach(AppTab.allCases, id: \.self) { tab in
+                DeepSeaTabItem(tab: tab, selectedTab: $selectedTab, onAdd: onAdd)
             }
-            .offset(y: -12)
-            .frame(maxWidth: .infinity)
-            .accessibilityLabel("Add new task")
-
-            ForEach(rightTabs, id: \.self) { DeepSeaTabItem(tab: $0, selectedTab: $selectedTab) }
         }
-        .padding(.top, 10)
-        .padding(.horizontal, 8)
-        .frame(height: 52)
+        .padding(.top, 12)
+        .padding(.bottom, 28)
+        .padding(.horizontal, DesignTokens.Spacing.xl)
         .background {
             Rectangle()
                 .fill(.ultraThinMaterial)
                 .ignoresSafeArea(edges: .bottom)
-                .overlay(alignment: .top) { Divider().opacity(0.5) }
+                .shadow(color: Color(hex: "#00334d").opacity(0.08), radius: 20, x: 0, y: -8)
+                .overlay(alignment: .top) {
+                    RoundedRectangle(cornerRadius: DesignTokens.Radius.xxxl, style: .continuous)
+                        .fill(Color(hex: "#ffffff").opacity(0.8))
+                        .frame(height: DesignTokens.Radius.xxxl * 2)
+                        .offset(y: -DesignTokens.Radius.xxxl)
+                }
         }
     }
 }
@@ -111,50 +104,77 @@ private struct DeepSeaTabBar: View {
 private struct DeepSeaTabItem: View {
     let tab: AppTab
     @Binding var selectedTab: AppTab
+    let onAdd: () -> Void
+
     private var isSelected: Bool { selectedTab == tab }
 
     var body: some View {
-        Button { selectedTab = tab } label: {
-            VStack(spacing: 3) {
-                Image(systemName: isSelected ? tab.filledIcon : tab.icon)
-                    .font(.system(size: 20))
-                    .foregroundStyle(isSelected ? DesignTokens.Colors.accent : Color(.tertiaryLabel))
-                Text(tab.title)
-                    .font(.system(size: 10, weight: isSelected ? .semibold : .regular))
-                    .foregroundStyle(isSelected ? DesignTokens.Colors.accent : Color(.tertiaryLabel))
+        Button {
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                selectedTab = tab
+            }
+        } label: {
+            Group {
+                if isSelected {
+                    Image(systemName: tab.filledIcon)
+                        .font(.system(size: 22))
+                        .foregroundStyle(DesignTokens.Colors.onPrimary)
+                        .frame(width: 48, height: 48)
+                        .background(LinearGradient.deepSeaPrimary, in: RoundedRectangle(cornerRadius: DesignTokens.Radius.lg))
+                        .shadow(color: DesignTokens.Colors.primary.opacity(0.3), radius: 10, x: 0, y: 4)
+                } else {
+                    Image(systemName: tab.icon)
+                        .font(.system(size: 22))
+                        .foregroundStyle(DesignTokens.Colors.onSurfaceVariant)
+                        .frame(width: 48, height: 48)
+                }
             }
             .frame(maxWidth: .infinity)
-            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+        .scaleEffect(isSelected ? 1.0 : 1.0)
+        .animation(.spring(response: 0.25, dampingFraction: 0.6), value: isSelected)
         .accessibilityLabel(tab.title)
         .accessibilityAddTraits(isSelected ? [.isSelected] : [])
     }
 }
 
-// MARK: - App Tab Definition
+// MARK: - App Tab Definition (5-tab matching Stitch)
 
 enum AppTab: String, CaseIterable, Hashable, Sendable {
-    case home, tasks, stats, settings
+    case home
+    case tasks
+    case focus
+    case calendar
+    case stats
 
     var title: String {
         switch self {
-        case .home: return "Home"; case .tasks: return "Tasks"
-        case .stats: return "Stats"; case .settings: return "Settings"
+        case .home:     return "Home"
+        case .tasks:    return "Tasks"
+        case .focus:    return "Focus"
+        case .calendar: return "Calendar"
+        case .stats:    return "Stats"
         }
     }
 
     var icon: String {
         switch self {
-        case .home: return "house"; case .tasks: return "list.bullet"
-        case .stats: return "chart.bar"; case .settings: return "gearshape"
+        case .home:     return "house"
+        case .tasks:    return "list.bullet.rectangle"
+        case .focus:    return "timer"
+        case .calendar: return "calendar"
+        case .stats:    return "chart.bar"
         }
     }
 
     var filledIcon: String {
         switch self {
-        case .home: return "house.fill"; case .tasks: return "list.bullet"
-        case .stats: return "chart.bar.fill"; case .settings: return "gearshape.fill"
+        case .home:     return "house.fill"
+        case .tasks:    return "list.bullet.rectangle.fill"
+        case .focus:    return "timer"
+        case .calendar: return "calendar"
+        case .stats:    return "chart.bar.fill"
         }
     }
 }
