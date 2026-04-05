@@ -34,6 +34,13 @@ final class DependencyContainer: Sendable {
         // Resolve the on-disk store URL so we can nuke it on migration failure.
         let storeURL = URL.applicationSupportDirectory
             .appending(component: "ProductivityHub.store", directoryHint: .notDirectory)
+
+        // Ensure the Application Support directory exists — iOS does not create it automatically.
+        try? FileManager.default.createDirectory(
+            at: storeURL.deletingLastPathComponent(),
+            withIntermediateDirectories: true
+        )
+
         let config = ModelConfiguration(
             "ProductivityHub",
             schema: schema,
