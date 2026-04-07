@@ -110,29 +110,28 @@ struct CalendarHubView: View {
 
     var body: some View {
         NavigationStack {
-            VStack(spacing: 0) {
-                // Month Calendar
-                DatePicker(
-                    "Select Date",
-                    selection: $viewModel.selectedDate,
-                    displayedComponents: .date
-                )
-                .datePickerStyle(.graphical)
-                .padding(.horizontal, DesignTokens.Spacing.lg)
-                #if compiler(>=5.9)
-                .onChange(of: viewModel.selectedDate) { _, newDate in
-                    Task { await viewModel.selectDate(newDate) }
-                }
-                #else
-                .onChange(of: viewModel.selectedDate) { newDate in
-                    Task { await viewModel.selectDate(newDate) }
-                }
-                #endif
+            ScrollView {
+                VStack(spacing: 0) {
+                    // Month Calendar
+                    MonthCalendarView(
+                        selectedDate: $viewModel.selectedDate,
+                        datesWithEvents: viewModel.datesWithEvents()
+                    )
+                    #if compiler(>=5.9)
+                    .onChange(of: viewModel.selectedDate) { _, newDate in
+                        Task { await viewModel.selectDate(newDate) }
+                    }
+                    #else
+                    .onChange(of: viewModel.selectedDate) { newDate in
+                        Task { await viewModel.selectDate(newDate) }
+                    }
+                    #endif
 
-                Divider()
+                    Divider()
 
-                // Day's Events
-                dayEventsSection
+                    // Day's Events
+                    dayEventsSection
+                }
             }
             .navigationTitle("Calendar")
             .toolbar {
@@ -203,24 +202,23 @@ struct CalendarHubView: View {
                         .font(.subheadline)
                         .foregroundStyle(DesignTokens.Colors.textSecondary)
                 }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .padding(.top, DesignTokens.Spacing.xxxl)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, DesignTokens.Spacing.xxxl)
             } else {
-                ScrollView {
-                    LazyVStack(spacing: DesignTokens.Spacing.sm) {
-                        ForEach(viewModel.eventsForSelectedDay, id: \.id) { event in
-                            EventRowView(event: event)
-                                .contextMenu {
-                                    Button(role: .destructive) {
-                                        Task { await viewModel.deleteEvent(event) }
-                                    } label: {
-                                        Label("Delete", systemImage: "trash")
-                                    }
+                LazyVStack(spacing: DesignTokens.Spacing.sm) {
+                    ForEach(viewModel.eventsForSelectedDay, id: \.id) { event in
+                        EventRowView(event: event)
+                            .contextMenu {
+                                Button(role: .destructive) {
+                                    Task { await viewModel.deleteEvent(event) }
+                                } label: {
+                                    Label("Delete", systemImage: "trash")
                                 }
-                        }
+                            }
                     }
-                    .padding(.horizontal, DesignTokens.Spacing.lg)
                 }
+                .padding(.horizontal, DesignTokens.Spacing.lg)
+                .padding(.bottom, DesignTokens.Spacing.lg)
             }
         }
     }
@@ -394,3 +392,199 @@ struct EventCreationSheet: View {
 }
 
 extension CalendarEvent: Identifiable {}
+
+// MARK: - Custom Month Calendar
+
+struct MonthCalendarView: View {
+    @Binding var selectedDate: Date
+    let datesWithEvents: Set<String>
+
+    @State private var displayedMonth: Date
+
+    private let calendar = Calendar.current
+    private let dayLabels = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"]
+
+    init(selectedDate: Binding<Date>, datesWithEvents: Set<String>) {
+        self._selectedDate = selectedDate
+        self.datesWithEvents = datesWithEvents
+        self._displayedMonth = State(initialValue: selectedDate.wrappedValue)
+    }
+
+    private var monthTitle: String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "MMMM yyyy"
+        return formatter.string(from: displayedMonth)
+    }
+
+    private var days: [Date?] {
+        guard
+            let monthStart = calendar.date(from: calendar.dateComponents([.year, .month], from: displayedMonth)),
+            let monthRange = calendar.range(of: .day, in: .month, for: monthStart)
+        else { return [] }
+
+        // Convert system weekday (Sun=1…Sat=7) to Mon-based offset (Mon=0…Sun=6)
+        let firstWeekday = calendar.component(.weekday, from: monthStart)
+        let offset = (firstWeekday + 5) % 7
+
+        var result: [Date?] = Array(repeating: nil, count: offset)
+        for dayIndex in monthRange {
+            if let date = calendar.date(byAdding: .day, value: dayIndex - 1, to: monthStart) {
+                result.append(date)
+            }
+        }
+        // Pad to fill the last row
+        let remainder = result.count % 7
+        if remainder != 0 {
+            result += Array(repeating: nil as Date?, count: 7 - remainder)
+        }
+        return result
+    }
+
+    var body: some View {
+        VStack(spacing: DesignTokens.Spacing.md) {
+            // Month header with prev/next navigation
+            HStack {
+                Button { advanceMonth(by: -1) } label: {
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(DesignTokens.Colors.textSecondary)
+                        .frame(width: 32, height: 32)
+                        .background(DesignTokens.Colors.surfaceSecondary, in: Circle())
+                }
+                .accessibilityLabel("Previous month")
+
+                Spacer()
+
+                Text(monthTitle)
+                    .font(.headline.weight(.semibold))
+                    .foregroundStyle(DesignTokens.Colors.textPrimary)
+
+                Spacer()
+
+                Button { advanceMonth(by: 1) } label: {
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(DesignTokens.Colors.textSecondary)
+                        .frame(width: 32, height: 32)
+                        .background(DesignTokens.Colors.surfaceSecondary, in: Circle())
+                }
+                .accessibilityLabel("Next month")
+            }
+            .padding(.horizontal, DesignTokens.Spacing.lg)
+
+            // Day-of-week headers
+            HStack(spacing: 0) {
+                ForEach(dayLabels, id: \.self) { label in
+                    Text(label)
+                        .font(.system(size: 10, weight: .semibold))
+                        .foregroundStyle(DesignTokens.Colors.textTertiary)
+                        .frame(maxWidth: .infinity)
+                }
+            }
+            .padding(.horizontal, DesignTokens.Spacing.sm)
+
+            // Date grid — 7 equal columns, no spacing so cells fill uniformly
+            LazyVGrid(
+                columns: Array(repeating: GridItem(.flexible(), spacing: 4), count: 7),
+                spacing: 4
+            ) {
+                ForEach(Array(days.enumerated()), id: \.offset) { _, date in
+                    if let date {
+                        DayCell(
+                            date: date,
+                            isSelected: calendar.isDate(date, inSameDayAs: selectedDate),
+                            isToday: calendar.isDateInToday(date),
+                            hasEvent: hasEvent(on: date)
+                        ) {
+                            selectedDate = date
+                        }
+                    } else {
+                        Color.clear.frame(height: 44)
+                    }
+                }
+            }
+            .padding(.horizontal, DesignTokens.Spacing.sm)
+        }
+        .padding(.vertical, DesignTokens.Spacing.md)
+        #if compiler(>=5.9)
+        .onChange(of: selectedDate) { _, newDate in
+            // Keep displayed month in sync when date is changed externally (e.g. "Today")
+            if !calendar.isDate(newDate, equalTo: displayedMonth, toGranularity: .month) {
+                displayedMonth = newDate
+            }
+        }
+        #else
+        .onChange(of: selectedDate) { newDate in
+            if !calendar.isDate(newDate, equalTo: displayedMonth, toGranularity: .month) {
+                displayedMonth = newDate
+            }
+        }
+        #endif
+    }
+
+    private func hasEvent(on date: Date) -> Bool {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        return datesWithEvents.contains(formatter.string(from: date))
+    }
+
+    private func advanceMonth(by value: Int) {
+        if let next = calendar.date(byAdding: .month, value: value, to: displayedMonth) {
+            displayedMonth = next
+        }
+    }
+}
+
+// MARK: - Day Cell
+
+struct DayCell: View {
+    let date: Date
+    let isSelected: Bool
+    let isToday: Bool
+    let hasEvent: Bool
+    let onTap: () -> Void
+
+    private var dayNumber: String {
+        "\(Calendar.current.component(.day, from: date))"
+    }
+
+    var body: some View {
+        Button(action: onTap) {
+            VStack(spacing: 3) {
+                Text(dayNumber)
+                    .font(.system(size: 15, weight: isSelected || isToday ? .semibold : .regular))
+                    .foregroundStyle(
+                        isSelected ? DesignTokens.Colors.textInverse
+                        : isToday  ? DesignTokens.Colors.accent
+                        : DesignTokens.Colors.textPrimary
+                    )
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 36)
+                    .background {
+                        if isSelected {
+                            RoundedRectangle(cornerRadius: 10)
+                                .fill(DesignTokens.Colors.backgroundNavy)
+                        } else if isToday {
+                            RoundedRectangle(cornerRadius: 10)
+                                .fill(DesignTokens.Colors.accent.opacity(0.12))
+                        } else {
+                            RoundedRectangle(cornerRadius: 10)
+                                .fill(DesignTokens.Colors.backgroundCard)
+                        }
+                    }
+
+                Circle()
+                    .fill(isSelected ? Color.white.opacity(0.7) : DesignTokens.Colors.accent)
+                    .frame(width: 4, height: 4)
+                    .opacity(hasEvent ? 1 : 0)
+            }
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(
+            "Day \(dayNumber)"
+            + (isToday ? ", today" : "")
+            + (isSelected ? ", selected" : "")
+            + (hasEvent ? ", has events" : "")
+        )
+    }
+}
